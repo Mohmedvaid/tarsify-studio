@@ -1,15 +1,26 @@
-import { LucideIcon } from 'lucide-react';
+import { FileCode, FolderOpen, Search, AlertCircle, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+type IconName = 'notebook' | 'folder' | 'search' | 'error';
+
 interface EmptyStateProps {
-  icon: LucideIcon;
+  icon: IconName | LucideIcon;
   title: string;
   description: string;
   action?: React.ReactNode;
   className?: string;
 }
 
-export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
+const iconMap: Record<IconName, LucideIcon> = {
+  notebook: FileCode,
+  folder: FolderOpen,
+  search: Search,
+  error: AlertCircle,
+};
+
+export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
+  const Icon = typeof icon === 'string' ? iconMap[icon] : icon;
+  
   return (
     <div
       className={cn(

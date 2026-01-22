@@ -48,7 +48,7 @@ export function useCreateNotebook() {
   return useMutation({
     mutationFn: (data: CreateNotebookInput) =>
       api.post<Notebook>(endpoints.notebooks.create, data),
-    onSuccess: (newNotebook) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notebookKeys.lists() });
       toast.success('Notebook created successfully!');
     },

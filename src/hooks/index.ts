@@ -11,7 +11,15 @@ export {
   useUnpublishNotebook,
   notebookKeys,
 } from './use-notebooks';
-export { useAnalyticsOverview, useNotebookAnalytics, analyticsKeys } from './use-analytics';
+export {
+  useAnalyticsOverview,
+  useNotebookAnalytics,
+  useAnalyticsTrends,
+  useTopNotebooks,
+  useRecentRuns,
+  analyticsKeys,
+} from './use-analytics';
+export type { AnalyticsTrends, TopNotebook, RecentRun } from './use-analytics';
 export {
   useEarningsSummary,
   useEarningsBreakdown,

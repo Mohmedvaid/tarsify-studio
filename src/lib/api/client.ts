@@ -1,5 +1,5 @@
 import { auth } from '@/lib/firebase/config';
-import type { ApiError, ApiResponse } from '@/types/api';
+import type { ApiError } from '@/types/api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 

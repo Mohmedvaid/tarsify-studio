@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Routes that require authentication
-const protectedRoutes = ['/dashboard', '/notebooks', '/analytics', '/earnings', '/settings'];
-
-// Routes that should redirect to dashboard if authenticated
-const authRoutes = ['/login', '/register', '/forgot-password'];
+// Routes configuration for future server-side auth enhancement
+// const protectedRoutes = ['/dashboard', '/notebooks', '/analytics', '/earnings', '/settings'];
+// const authRoutes = ['/login', '/register', '/forgot-password'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -14,9 +12,6 @@ export function middleware(request: NextRequest) {
   // Note: Firebase stores auth state in IndexedDB, not cookies by default
   // This middleware provides basic route protection
   // Full auth state is managed client-side via AuthProvider
-
-  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
   // For now, we'll let the client-side handle auth redirects
   // This middleware can be enhanced later with Firebase Admin SDK for server-side auth

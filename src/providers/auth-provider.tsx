@@ -30,7 +30,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
           const developer = await api.get<Developer>(endpoints.auth.me);
           setDeveloper(developer);
-        } catch (error) {
+        } catch {
           // Developer profile might not exist yet (new user)
           console.log('Developer profile not found, user may need to register');
           setDeveloper(null);

@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/shared';
 import { StatsCard, StatsCardSkeleton } from '@/components/analytics';
 import { useAuth } from '@/hooks/use-auth';
 import { useNotebooks } from '@/hooks/use-notebooks';
-import { formatCredits, formatCurrency, formatRelativeTime } from '@/lib/utils/format';
+import { formatCurrency, formatRelativeTime } from '@/lib/utils/format';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { NOTEBOOK_STATUS_CONFIG } from '@/lib/constants';
