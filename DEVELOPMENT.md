@@ -1,324 +1,204 @@
-# Tarsify Studio - Development Notes
+# Tarsify Studio - Development Guide
 
-> This document tracks mock data, TODOs, and implementation notes for future reference.
-
----
-
-## Table of Contents
-
-- [Mock Data Overview](#mock-data-overview)
-- [Phase Status](#phase-status)
-- [Mock Data Details](#mock-data-details)
-- [API Integration TODOs](#api-integration-todos)
-- [Known Limitations](#known-limitations)
-- [Future Enhancements](#future-enhancements)
+> Developer portal for AI notebook creators
 
 ---
 
-## Mock Data Overview
+## Quick Reference
 
-| Module            | Status  | Mock Data Location          | Real API Ready   |
-| ----------------- | ------- | --------------------------- | ---------------- |
-| Authentication    | ✅ Real | N/A                         | ✅ Firebase Auth |
-| Notebooks CRUD    | 🟡 Mock | `src/lib/mock/notebooks.ts` | ❌ Needs API     |
-| Analytics         | 🟡 Mock | `src/lib/mock/analytics.ts` | ❌ Needs API     |
-| Earnings          | 🟡 Mock | `src/lib/mock/earnings.ts`  | ❌ Needs API     |
-| Developer Profile | 🟡 Mock | `src/lib/mock/developer.ts` | ❌ Needs API     |
+| Resource      | Location                         |
+| ------------- | -------------------------------- |
+| API Docs      | [API.MD](./API.MD)               |
+| Archived Docs | [docs/archive/](./docs/archive/) |
+| Mock Data     | `src/lib/mock/index.ts`          |
+| API Client    | `src/lib/api/client.ts`          |
+
+---
+
+## Infrastructure Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         DOMAINS                             │
+│  tarsify.com → Consumer Web                                 │
+│  studio.tarsify.com → Developer Portal (this repo)         │
+│  api.tarsify.com → Backend API                             │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                      AUTHENTICATION                         │
+│  Firebase Project: tarsify-studio (separate from consumer)  │
+│  Token passed to API via: Authorization: Bearer <token>     │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                       BACKEND API                           │
+│  /api/studio/auth/*      → Developer auth & profile         │
+│  /api/studio/notebooks/* → Notebook CRUD & files            │
+│  /api/studio/analytics   → Stats (deferred)                 │
+│  /api/studio/earnings    → Revenue (deferred)               │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Phase Status
 
-### ✅ Phase 1: Project Setup
+### ✅ Phase 1: Foundation (Complete)
 
-- Next.js 15, TypeScript, Tailwind CSS 4
-- All dependencies installed
-- ESLint, Prettier configured
+- [x] Next.js 15 + TypeScript + Tailwind CSS 4
+- [x] shadcn/ui components
+- [x] Firebase Auth integration
+- [x] API client with auth headers
+- [x] React Query + Zustand setup
+- [x] Protected routes middleware
 
-### ✅ Phase 2: Core Infrastructure
+### ✅ Phase 2: UI Complete (Complete)
 
-- API client with auth headers
-- Firebase Auth integration
-- Zustand stores
-- React Query setup
+- [x] Auth pages (login, register)
+- [x] Dashboard layout (sidebar, header)
+- [x] Notebooks list, create, edit, view pages
+- [x] File upload component (UI only)
+- [x] Settings page (profile, account, payout)
+- [x] Analytics page (mock data)
+- [x] Earnings page (mock data)
 
-### ✅ Phase 3: Authentication
+### 🔴 Phase 3: Auth API Integration (Current)
 
-- Login page
-- Register page
-- Firebase Auth working (tarsify-studio project)
-- Auth state management
+Connect real API endpoints for authentication:
 
-### ✅ Phase 4: Dashboard Layout
+| Endpoint                         | Hook                  | Status  |
+| -------------------------------- | --------------------- | ------- |
+| `POST /api/studio/auth/register` | After Firebase signup | 🔴 TODO |
+| `GET /api/studio/auth/me`        | `useDeveloperProfile` | 🟡 Mock |
+| `PUT /api/studio/auth/profile`   | `useUpdateProfile`    | 🟡 Mock |
 
-- Sidebar navigation
-- Header with user menu
-- Mobile responsive
-- Protected routes
+**Tasks:**
 
-### ✅ Phase 5: Notebooks Module
+- [ ] Call register API after Firebase signup in auth-provider
+- [ ] Switch `useDeveloperProfile` to real API
+- [ ] Switch `useUpdateProfile` to real API
+- [ ] Handle 404 (new user) vs 200 (existing user) on `/me`
 
-- Notebooks list page
-- Create/Edit/View pages
-- File upload component (UI only)
-- Publish workflow
+### 🔴 Phase 4: Notebooks API Integration
 
-### 🚧 Phase 6: Analytics & Earnings (Current)
+Connect real API endpoints for notebooks:
 
-- Using mock data
-- Charts with recharts (not yet installed)
-- Stats cards
-- Earnings breakdown
+| Endpoint                                   | Hook                   | Status  |
+| ------------------------------------------ | ---------------------- | ------- |
+| `GET /api/studio/notebooks`                | `useNotebooks`         | 🟡 Mock |
+| `POST /api/studio/notebooks`               | `useCreateNotebook`    | 🟡 Mock |
+| `GET /api/studio/notebooks/:id`            | `useNotebook`          | 🟡 Mock |
+| `PUT /api/studio/notebooks/:id`            | `useUpdateNotebook`    | 🟡 Mock |
+| `DELETE /api/studio/notebooks/:id`         | `useDeleteNotebook`    | 🟡 Mock |
+| `POST /api/studio/notebooks/:id/publish`   | `usePublishNotebook`   | 🟡 Mock |
+| `POST /api/studio/notebooks/:id/unpublish` | `useUnpublishNotebook` | 🟡 Mock |
 
-### ⬜ Phase 7: Settings
+### 🔴 Phase 5: File Upload
 
-- Not started
+Connect file upload endpoints:
+
+| Endpoint                                | Hook                    | Status     |
+| --------------------------------------- | ----------------------- | ---------- |
+| `POST /api/studio/notebooks/:id/file`   | `useUploadNotebookFile` | 🔴 UI only |
+| `DELETE /api/studio/notebooks/:id/file` | `useDeleteNotebookFile` | 🔴 UI only |
+
+**Tasks:**
+
+- [ ] Implement actual file upload (multipart/form-data)
+- [ ] Show upload progress
+- [ ] Handle large files (up to 50MB)
+
+### ⏸️ Phase 6: Analytics & Earnings (Deferred)
+
+_Postponed to post-MVP - UI exists with mock data_
+
+- Analytics overview and charts
+- Earnings summary and breakdown
+- Payout request flow
+- Stripe Connect integration
+
+### ⏸️ Phase 7: Deploy & Polish (Deferred)
+
+- Cloud Run deployment
+- Error boundaries
+- Loading state improvements
+- E2E tests
 
 ---
 
-## Mock Data Details
+## Mock Data Configuration
 
-### Notebooks Mock Data
-
-**File:** `src/lib/mock/notebooks.ts`
+All hooks check `USE_MOCK_DATA` flag:
 
 ```typescript
-// Returns array of mock notebooks with realistic data
-// Used by: useNotebooks, useNotebook hooks
-// TODO: Replace with GET /api/developers/notebooks
+// src/lib/mock/index.ts
+export const USE_MOCK_DATA = true; // Set to false when API is ready
 ```
 
-**What's Mocked:**
+**To switch to real API:**
 
-- Notebook listing
-- Single notebook fetch
-- Create/Update/Delete operations
-- File upload (simulated delay)
-- Publish/Unpublish (simulated)
-
-**Integration Points:**
-
-```
-GET    /api/developers/notebooks         → useNotebooks()
-GET    /api/developers/notebooks/:id     → useNotebook(id)
-POST   /api/developers/notebooks         → useCreateNotebook()
-PUT    /api/developers/notebooks/:id     → useUpdateNotebook()
-DELETE /api/developers/notebooks/:id     → useDeleteNotebook()
-POST   /api/developers/notebooks/:id/publish   → usePublishNotebook()
-POST   /api/developers/notebooks/:id/unpublish → useUnpublishNotebook()
-```
+1. Set `USE_MOCK_DATA = false`
+2. Ensure `NEXT_PUBLIC_API_URL` is set in `.env.local`
+3. Test each endpoint individually
 
 ---
 
-### Analytics Mock Data
+## Environment Variables
 
-**File:** `src/lib/mock/analytics.ts`
+```bash
+# .env.local
+NEXT_PUBLIC_API_URL=http://localhost:3001
 
-```typescript
-// Returns analytics overview and per-notebook stats
-// Used by: useAnalyticsOverview, useNotebookAnalytics hooks
-// TODO: Replace with GET /api/developers/analytics
-```
-
-**What's Mocked:**
-
-- Total views, runs, earnings
-- Daily/weekly/monthly trends
-- Per-notebook breakdown
-- Chart data (time series)
-
-**Integration Points:**
-
-```
-GET /api/developers/analytics           → useAnalyticsOverview()
-GET /api/developers/analytics/notebooks/:id → useNotebookAnalytics(id)
-GET /api/developers/analytics/trends    → useAnalyticsTrends()
-```
-
----
-
-### Earnings Mock Data
-
-**File:** `src/lib/mock/earnings.ts`
-
-```typescript
-// Returns earnings summary, breakdown, and payout history
-// Used by: useEarningsSummary, useEarningsBreakdown, usePayouts hooks
-// TODO: Replace with GET /api/developers/earnings
-```
-
-**What's Mocked:**
-
-- Available/pending balance
-- Total earned
-- Per-notebook earnings breakdown
-- Payout history
-- Payout request (simulated)
-
-**Integration Points:**
-
-```
-GET  /api/developers/earnings              → useEarningsSummary()
-GET  /api/developers/earnings/breakdown    → useEarningsBreakdown()
-GET  /api/developers/earnings/payouts      → usePayouts()
-POST /api/developers/earnings/payouts/request → useRequestPayout()
-```
-
----
-
-### Developer Profile Mock Data
-
-**File:** `src/lib/mock/developer.ts`
-
-```typescript
-// Returns developer profile data
-// Used by: useDeveloperProfile hook
-// TODO: Replace with GET /api/developers/me
-```
-
-**What's Mocked:**
-
-- Developer profile info
-- Profile update (simulated)
-
-**Integration Points:**
-
-```
-GET  /api/developers/me              → useDeveloperProfile()
-PUT  /api/developers/me              → useUpdateProfile()
-POST /api/developers/me/avatar       → useUploadAvatar()
-```
-
----
-
-## API Integration TODOs
-
-When the API is ready, follow these steps:
-
-### 1. Remove Mock Data Flag
-
-```typescript
-// In src/lib/api/client.ts
-const USE_MOCK_DATA = false; // Change from true to false
-```
-
-### 2. Update Environment Variables
-
-```env
-NEXT_PUBLIC_API_URL=https://api.tarsify.com
-```
-
-### 3. Update Hook Implementations
-
-Each hook has a comment marking where to switch from mock to real:
-
-```typescript
-// Look for comments like:
-// TODO: Replace with real API call when ready
-// const data = await api.get<T>(endpoint);
-```
-
-### 4. Test Each Endpoint
-
-Use the API testing checklist:
-
-- [ ] `GET /api/developers/me` - Profile fetch
-- [ ] `PUT /api/developers/me` - Profile update
-- [ ] `GET /api/developers/notebooks` - List notebooks
-- [ ] `POST /api/developers/notebooks` - Create notebook
-- [ ] `GET /api/developers/notebooks/:id` - Get notebook
-- [ ] `PUT /api/developers/notebooks/:id` - Update notebook
-- [ ] `DELETE /api/developers/notebooks/:id` - Delete notebook
-- [ ] `POST /api/developers/notebooks/:id/file` - Upload file
-- [ ] `DELETE /api/developers/notebooks/:id/file` - Delete file
-- [ ] `POST /api/developers/notebooks/:id/publish` - Publish
-- [ ] `POST /api/developers/notebooks/:id/unpublish` - Unpublish
-- [ ] `GET /api/developers/analytics` - Analytics overview
-- [ ] `GET /api/developers/analytics/notebooks/:id` - Notebook analytics
-- [ ] `GET /api/developers/earnings` - Earnings summary
-- [ ] `GET /api/developers/earnings/breakdown` - Breakdown
-- [ ] `GET /api/developers/earnings/payouts` - Payout history
-- [ ] `POST /api/developers/earnings/payouts/request` - Request payout
-
----
-
-## Known Limitations
-
-### Current Mock Data Limitations
-
-1. **No Persistence**
-   - Data resets on page refresh
-   - Changes only exist in memory
-
-2. **No Real File Upload**
-   - FileUpload component shows UI only
-   - Files are not actually stored
-
-3. **No Real Analytics**
-   - Charts show randomized fake data
-   - No actual tracking
-
-4. **No Real Payments**
-   - Payout request is simulated
-   - No Stripe integration yet
-
-5. **Search/Filter**
-   - Works on mock data only
-   - May behave differently with real API
-
----
-
-## Future Enhancements
-
-### Priority 1 (Required for Launch)
-
-- [ ] Connect to real API
-- [ ] Real file upload to cloud storage
-- [ ] Stripe Connect for payouts
-- [ ] Email notifications
-
-### Priority 2 (Nice to Have)
-
-- [ ] Real-time analytics updates
-- [ ] Notebook preview/renderer
-- [ ] Markdown editor for descriptions
-- [ ] Bulk operations (select multiple notebooks)
-
-### Priority 3 (Future)
-
-- [ ] A/B testing for thumbnails
-- [ ] AI-powered notebook suggestions
-- [ ] Collaboration features
-- [ ] Webhook integrations
-
----
-
-## Notes
-
-### Environment Configuration
-
-```env
-# .env.local (real values, not committed)
+# Firebase (tarsify-studio project)
 NEXT_PUBLIC_FIREBASE_API_KEY=xxx
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=xxx
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=tarsify-studio.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=tarsify-studio
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=xxx
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=xxx
 NEXT_PUBLIC_FIREBASE_APP_ID=xxx
-NEXT_PUBLIC_API_URL=http://localhost:3001
-
-# Mock data flag (in code)
-USE_MOCK_DATA=true  # Set to false when API is ready
 ```
-
-### Testing Mock Data
-
-To test with mock data:
-
-1. Hooks automatically use mock data when `USE_MOCK_DATA=true`
-2. Mock data has realistic delays (300-800ms)
-3. Some operations randomly fail to test error handling
 
 ---
 
-_Last Updated: Phase 6 - Analytics & Earnings Module_
+## Key Files
+
+| File                              | Purpose                        |
+| --------------------------------- | ------------------------------ |
+| `src/lib/api/client.ts`           | API client with auth           |
+| `src/lib/api/endpoints.ts`        | Endpoint definitions           |
+| `src/lib/mock/index.ts`           | Mock data & USE_MOCK_DATA flag |
+| `src/hooks/use-*.ts`              | Data fetching hooks            |
+| `src/providers/auth-provider.tsx` | Firebase auth listener         |
+
+---
+
+## Commands
+
+```bash
+npm run dev      # Start dev server
+npm run build    # Production build
+npm run lint     # Run ESLint
+npm run test     # Run unit tests
+```
+
+---
+
+## Current Limitations
+
+1. **No real file upload** - FileUpload component is UI only
+2. **No persistence** - Mock data resets on refresh
+3. **Analytics/Earnings** - Fully mocked, deferred to post-MVP
+
+---
+
+## Next Steps
+
+1. **Verify backend API is running** at `localhost:3001`
+2. **Start with Phase 3** - Auth API integration
+3. **Test register flow** - Firebase signup + API register call
+4. **Proceed to Phase 4** - Notebooks API
+
+---
+
+_Last Updated: January 27, 2026_

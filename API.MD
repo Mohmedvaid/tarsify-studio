@@ -1,413 +1,356 @@
-# SonarQube API Endpoints Documentation
+# Tarsify Studio - API Reference
 
-This document details all API endpoints used by the SonarQube Project Tagger, including parameters, expected outputs, and response codes.
+> **Base URL:** `https://api.tarsify.com` (Production) | `http://localhost:3001` (Local)
+
+All `/api/studio/*` endpoints require Firebase Auth token in header:
+
+```
+Authorization: Bearer <firebase_id_token>
+```
+
+---
 
 ## Authentication
 
-All endpoints use **HTTP Basic Authentication** with:
+### POST `/api/studio/auth/register`
 
-- **Username**: Personal Access Token (PAT) from `SONAR_PAT` environment variable
-- **Password**: Empty string (not used)
+Create developer record after Firebase signup.
 
-**Header Format**: `Authorization: Basic <base64(pat:)>`
-
----
-
-## 1. Get All Projects
-
-**Endpoint**: `GET /api/projects/search`
-
-**Purpose**: Fetch all projects from SonarQube (not just from a specific portfolio)
-
-**Parameters**:
-| Parameter | Type | Required | Description | Example |
-|-----------|------|----------|-------------|---------|
-| `p` | integer | Yes | Page number (1-based) | `1`, `2`, `3` |
-| `ps` | integer | Yes | Page size (max 500) | `500` |
-
-**Request Example**:
-
-```
-GET /api/projects/search?p=1&ps=500
-Authorization: Basic <token>
-```
-
-**Response Code**: `200 OK`
-
-**Response Body** (JSON):
+**Request Body:**
 
 ```json
 {
-  "paging": {
-    "pageIndex": 1,
-    "pageSize": 500,
-    "total": 1362
-  },
-  "components": [
-    {
-      "key": "WBA:Digital:wag-cac-cart",
-      "name": "WAG CAC Cart",
-      "qualifier": "TRK",
-      "visibility": "public"
-    },
-    {
-      "key": "Rx-Renewal:Pharmacy-Modernization:assembly-ui",
-      "name": "Assembly UI",
-      "qualifier": "TRK",
-      "visibility": "public"
-    }
-  ]
+  "email": "dev@example.com",
+  "name": "Alex Developer"
 }
 ```
 
-**Response Fields**:
-
-- `paging.pageIndex`: Current page number
-- `paging.pageSize`: Number of items per page
-- `paging.total`: Total number of projects
-- `components[]`: Array of project objects
-  - `key`: Project key (unique identifier)
-  - `name`: Project display name
-  - `qualifier`: Project type (usually "TRK" for track)
-  - `visibility`: Project visibility ("public" or "private")
-
-**Error Responses**:
-
-- `401 Unauthorized`: Invalid or missing authentication token
-- `403 Forbidden`: Insufficient permissions
-- `500 Internal Server Error`: SonarQube server error
-
----
-
-## 2. Get All Portfolios
-
-**Endpoint**: `GET /api/views/list`
-
-**Purpose**: Fetch all portfolios (views) from SonarQube
-
-**Parameters**: None
-
-**Request Example**:
-
-```
-GET /api/views/list
-Authorization: Basic <token>
-```
-
-**Response Code**: `200 OK`
-
-**Response Body** (JSON):
+**Response:** `201 Created`
 
 ```json
 {
-  "views": [
-    {
-      "key": "All-Projects",
-      "name": "All Projects",
-      "description": "All projects portfolio"
-    },
-    {
-      "key": "digital_pharmacy_services",
-      "name": "Digital Pharmacy Services",
-      "description": "Digital pharmacy services portfolio"
-    },
-    {
-      "key": "unassigned",
-      "name": "Unassigned",
-      "description": "Unassigned projects"
-    }
-  ]
+  "id": "uuid",
+  "firebaseUid": "firebase_uid",
+  "email": "dev@example.com",
+  "name": "Alex Developer",
+  "verified": false,
+  "createdAt": "2026-01-27T00:00:00Z"
 }
 ```
 
-**Response Fields**:
-
-- `views[]`: Array of portfolio objects
-  - `key`: Portfolio key (unique identifier)
-  - `name`: Portfolio display name
-  - `description`: Portfolio description (optional)
-
-**Error Responses**:
-
-- `401 Unauthorized`: Invalid or missing authentication token
-- `403 Forbidden`: Insufficient permissions
-- `500 Internal Server Error`: SonarQube server error
-
 ---
 
-## 3. Get Projects in a Portfolio
+### GET `/api/studio/auth/me`
 
-**Endpoint**: `GET /api/views/show`
+Get current developer profile.
 
-**Purpose**: Fetch all projects assigned to a specific portfolio
-
-**Parameters**:
-| Parameter | Type | Required | Description | Example |
-|-----------|------|----------|-------------|---------|
-| `key` | string | Yes | Portfolio key | `All-Projects`, `digital_pharmacy_services` |
-
-**Request Example**:
-
-```
-GET /api/views/show?key=digital_pharmacy_services
-Authorization: Basic <token>
-```
-
-**Response Code**: `200 OK`
-
-**Response Body** (JSON):
+**Response:** `200 OK`
 
 ```json
 {
-  "key": "digital_pharmacy_services",
-  "name": "Digital Pharmacy Services",
-  "description": "Digital pharmacy services portfolio",
-  "selectedProjects": [
-    {
-      "projectKey": "WBA:Digital:wag-cac-cart",
-      "projectName": "WAG CAC Cart"
-    },
-    {
-      "projectKey": "WBA:Digital:wag-findcare-findcareadminui",
-      "projectName": "FindCare Admin UI"
-    }
-  ]
+  "id": "uuid",
+  "firebaseUid": "firebase_uid",
+  "email": "dev@example.com",
+  "name": "Alex Developer",
+  "avatarUrl": "https://...",
+  "bio": "AI developer",
+  "earningsBalance": 5000,
+  "payoutEmail": "payout@example.com",
+  "verified": true,
+  "createdAt": "2026-01-27T00:00:00Z",
+  "updatedAt": "2026-01-27T00:00:00Z"
 }
 ```
 
-**Response Fields**:
+---
 
-- `key`: Portfolio key
-- `name`: Portfolio display name
-- `description`: Portfolio description
-- `selectedProjects[]`: Array of project objects
-  - `projectKey`: Project key (unique identifier)
-  - `projectName`: Project display name
+### PUT `/api/studio/auth/profile`
 
-**Error Responses**:
+Update developer profile.
 
-- `400 Bad Request`: Invalid portfolio key
-- `401 Unauthorized`: Invalid or missing authentication token
-- `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: Portfolio does not exist
-- `500 Internal Server Error`: SonarQube server error
+**Request Body:**
+
+```json
+{
+  "name": "Alex Developer",
+  "bio": "AI developer building cool stuff",
+  "avatarUrl": "https://...",
+  "payoutEmail": "payout@example.com"
+}
+```
+
+**Response:** `200 OK` - Returns updated developer object
 
 ---
 
-## 4. Create Portfolio
+## Notebooks
 
-**Endpoint**: `POST /api/views/create`
+### GET `/api/studio/notebooks`
 
-**Purpose**: Create a new portfolio (view) in SonarQube
+List developer's notebooks with pagination.
 
-**Parameters**:
-| Parameter | Type | Required | Description | Example |
-|-----------|------|----------|-------------|---------|
-| `key` | string | Yes | Portfolio key (unique identifier) | `digital_pharmacy_services` |
-| `name` | string | Yes | Portfolio display name | `Digital Pharmacy Services` |
+**Query Parameters:**
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `page` | int | 1 | Page number |
+| `limit` | int | 10 | Items per page |
+| `status` | string | - | Filter: `draft`, `published`, `archived` |
+| `search` | string | - | Search title/description |
 
-**Request Example**:
+**Response:** `200 OK`
 
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Image Generator",
+      "shortDescription": "Generate images with AI",
+      "status": "published",
+      "priceCredits": 100,
+      "gpuType": "T4",
+      "category": "image",
+      "totalRuns": 1500,
+      "hasFile": true,
+      "createdAt": "2026-01-27T00:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 25,
+    "totalPages": 3
+  }
+}
 ```
-POST /api/views/create?key=digital_pharmacy_services&name=Digital%20Pharmacy%20Services
-Authorization: Basic <token>
-```
-
-**Response Code**: `200 OK` or `204 No Content`
-
-**Response Body**: Empty or minimal JSON
-
-**Error Responses**:
-
-- `400 Bad Request`: Invalid parameters or portfolio key already exists
-- `401 Unauthorized`: Invalid or missing authentication token
-- `403 Forbidden`: Insufficient permissions (requires "Portfolio Admin" or "Admin")
-- `500 Internal Server Error`: SonarQube server error
-
-**Note**: After creating a portfolio, the code also calls `/api/views/set_manual_mode` to set it to manual mode.
 
 ---
 
-## 5. Set Portfolio to Manual Mode
+### POST `/api/studio/notebooks`
 
-**Endpoint**: `POST /api/views/set_manual_mode`
+Create a new notebook (draft).
 
-**Purpose**: Set a portfolio to manual mode (required before adding/removing projects)
+**Request Body:**
 
-**Parameters**:
-| Parameter | Type | Required | Description | Example |
-|-----------|------|----------|-------------|---------|
-| `portfolio` | string | Yes | Portfolio key | `digital_pharmacy_services` |
-
-**Request Example**:
-
+```json
+{
+  "title": "My AI Notebook",
+  "shortDescription": "A short description",
+  "description": "Full markdown description",
+  "priceCredits": 50,
+  "gpuType": "T4",
+  "category": "image"
+}
 ```
-POST /api/views/set_manual_mode?portfolio=digital_pharmacy_services
-Authorization: Basic <token>
-```
 
-**Response Code**: `200 OK` or `204 No Content`
-
-**Response Body**: Empty
-
-**Error Responses**:
-
-- `400 Bad Request`: Invalid portfolio key
-- `401 Unauthorized`: Invalid or missing authentication token
-- `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: Portfolio does not exist
-- `500 Internal Server Error`: SonarQube server error
+**Response:** `201 Created` - Returns notebook object
 
 ---
 
-## 6. Add Project to Portfolio
+### GET `/api/studio/notebooks/:id`
 
-**Endpoint**: `POST /api/views/add_project`
+Get notebook details.
 
-**Purpose**: Add a project to a portfolio
+**Response:** `200 OK`
 
-**Parameters**:
-| Parameter | Type | Required | Description | Example |
-|-----------|------|----------|-------------|---------|
-| `key` | string | Yes | Portfolio key | `digital_pharmacy_services` |
-| `project` | string | Yes | Project key | `WBA:Digital:wag-cac-cart` |
-
-**Request Example**:
-
+```json
+{
+  "id": "uuid",
+  "developerId": "uuid",
+  "title": "Image Generator",
+  "shortDescription": "Generate images with AI",
+  "description": "Full markdown...",
+  "thumbnailUrl": "https://...",
+  "priceCredits": 100,
+  "gpuType": "T4",
+  "category": "image",
+  "status": "published",
+  "totalRuns": 1500,
+  "averageRating": 4.5,
+  "hasFile": true,
+  "createdAt": "2026-01-27T00:00:00Z",
+  "updatedAt": "2026-01-27T00:00:00Z"
+}
 ```
-POST /api/views/add_project?key=digital_pharmacy_services&project=WBA%3ADigital%3Awag-cac-cart
-Authorization: Basic <token>
-```
-
-**Response Code**: `204 No Content`
-
-**Response Body**: Empty
-
-**Error Responses**:
-
-- `400 Bad Request`:
-  - Invalid parameters
-  - Project already in portfolio
-  - Portfolio not in manual mode
-- `401 Unauthorized`: Invalid or missing authentication token
-- `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: Portfolio or project does not exist
-- `500 Internal Server Error`: SonarQube server error
-
-**Note**: Portfolio must be in manual mode before adding projects. The code automatically sets manual mode before adding.
 
 ---
 
-## 7. Remove Project from Portfolio
+### PUT `/api/studio/notebooks/:id`
 
-**Endpoint**: `POST /api/views/remove_project`
+Update notebook metadata.
 
-**Purpose**: Remove a project from a portfolio
+**Request Body:** Same as POST (partial updates allowed)
 
-**Parameters**:
-| Parameter | Type | Required | Description | Example |
-|-----------|------|----------|-------------|---------|
-| `key` | string | Yes | Portfolio key | `digital_pharmacy_services` |
-| `project` | string | Yes | Project key | `WBA:Digital:wag-cac-cart` |
-
-**Request Example**:
-
-```
-POST /api/views/remove_project?key=digital_pharmacy_services&project=WBA%3ADigital%3Awag-cac-cart
-Authorization: Basic <token>
-```
-
-**Response Code**: `204 No Content`
-
-**Response Body**: Empty
-
-**Error Responses**:
-
-- `400 Bad Request`:
-  - Invalid parameters
-  - Project not in portfolio
-  - Portfolio not in manual mode
-- `401 Unauthorized`: Invalid or missing authentication token
-- `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: Portfolio or project does not exist
-- `500 Internal Server Error`: SonarQube server error
-
-**Note**: Portfolio must be in manual mode before removing projects. The code automatically sets manual mode before removing.
+**Response:** `200 OK` - Returns updated notebook
 
 ---
 
-## 8. Refresh Portfolio
+### DELETE `/api/studio/notebooks/:id`
 
-**Endpoint**: `POST /api/views/refresh`
+Delete a notebook (must be draft or archived).
 
-**Purpose**: Trigger a refresh/recompute of portfolio metrics
-
-**Parameters**:
-| Parameter | Type | Required | Description | Example |
-|-----------|------|----------|-------------|---------|
-| `key` | string | Yes | Portfolio key | `digital_pharmacy_services` |
-
-**Request Example**:
-
-```
-POST /api/views/refresh?key=digital_pharmacy_services
-Authorization: Basic <token>
-```
-
-**Response Code**: `200 OK` or `204 No Content`
-
-**Response Body**: Empty or minimal JSON
-
-**Error Responses**:
-
-- `400 Bad Request`: Invalid portfolio key
-- `401 Unauthorized`: Invalid or missing authentication token
-- `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: Portfolio does not exist
-- `500 Internal Server Error`: SonarQube server error
-
-**Note**: This endpoint triggers an asynchronous refresh. The portfolio metrics will be recomputed in the background.
+**Response:** `204 No Content`
 
 ---
 
-## Summary Table
+## Notebook Files
 
-| Endpoint                     | Method | Purpose                       | Success Code | Key Parameters   |
-| ---------------------------- | ------ | ----------------------------- | ------------ | ---------------- |
-| `/api/projects/search`       | GET    | Get all projects              | 200          | `p`, `ps`        |
-| `/api/views/list`            | GET    | Get all portfolios            | 200          | None             |
-| `/api/views/show`            | GET    | Get projects in portfolio     | 200          | `key`            |
-| `/api/views/create`          | POST   | Create portfolio              | 200/204      | `key`, `name`    |
-| `/api/views/set_manual_mode` | POST   | Set manual mode               | 200/204      | `portfolio`      |
-| `/api/views/add_project`     | POST   | Add project to portfolio      | 204          | `key`, `project` |
-| `/api/views/remove_project`  | POST   | Remove project from portfolio | 204          | `key`, `project` |
-| `/api/views/refresh`         | POST   | Refresh portfolio             | 200/204      | `key`            |
+### POST `/api/studio/notebooks/:id/file`
 
-## Common Error Codes
+Upload .ipynb file.
 
-| Code                        | Meaning                     | Common Causes                                       |
-| --------------------------- | --------------------------- | --------------------------------------------------- |
-| `200 OK`                    | Request successful          | -                                                   |
-| `204 No Content`            | Request successful, no body | Used for POST operations                            |
-| `400 Bad Request`           | Invalid request parameters  | Missing/invalid parameters, business rule violation |
-| `401 Unauthorized`          | Authentication failed       | Invalid/missing PAT token                           |
-| `403 Forbidden`             | Insufficient permissions    | User lacks required permissions                     |
-| `404 Not Found`             | Resource not found          | Portfolio/project doesn't exist                     |
-| `500 Internal Server Error` | Server error                | SonarQube internal error                            |
+**Request:** `multipart/form-data`
 
-## Rate Limiting
+- `file`: The .ipynb file (max 50MB)
 
-SonarQube may implement rate limiting. If you encounter `429 Too Many Requests`:
+**Response:** `200 OK`
 
-- Reduce request frequency
-- Implement exponential backoff
-- Batch operations where possible
+```json
+{
+  "message": "File uploaded successfully",
+  "fileUrl": "gs://bucket/notebooks/uuid.ipynb"
+}
+```
 
-## Best Practices
+---
 
-1. **Always set manual mode** before adding/removing projects from portfolios
-2. **Use fail-safe operations**: Add to target portfolio before removing from source
-3. **Handle 400 errors gracefully**: May indicate project already in portfolio
-4. **Cache portfolio membership**: Avoid repeated calls to `/api/views/show`
-5. **Use pagination**: For `/api/projects/search`, use `ps=500` (max) to minimize requests
-6. **Log all errors**: Include full error response in logs for debugging
+### GET `/api/studio/notebooks/:id/file`
+
+Download .ipynb file.
+
+**Response:** `200 OK` - File download or signed URL
+
+---
+
+### DELETE `/api/studio/notebooks/:id/file`
+
+Delete .ipynb file.
+
+**Response:** `204 No Content`
+
+---
+
+## Publishing
+
+### POST `/api/studio/notebooks/:id/publish`
+
+Publish notebook to marketplace.
+
+**Requirements:**
+
+- Has uploaded .ipynb file
+- Title and descriptions filled
+- Price set
+
+**Response:** `200 OK`
+
+```json
+{
+  "message": "Notebook published",
+  "status": "published"
+}
+```
+
+---
+
+### POST `/api/studio/notebooks/:id/unpublish`
+
+Unpublish notebook (remove from marketplace).
+
+**Response:** `200 OK`
+
+```json
+{
+  "message": "Notebook unpublished",
+  "status": "draft"
+}
+```
+
+---
+
+## Analytics (Deferred to Post-MVP)
+
+### GET `/api/studio/analytics`
+
+Get overall analytics.
+
+**Response:** `200 OK`
+
+```json
+{
+  "totalNotebooks": 5,
+  "totalRuns": 1500,
+  "totalEarnings": 75000,
+  "viewsToday": 120,
+  "runsToday": 45
+}
+```
+
+---
+
+### GET `/api/studio/analytics/notebooks/:id`
+
+Get per-notebook analytics.
+
+---
+
+## Earnings (Deferred to Post-MVP)
+
+### GET `/api/studio/earnings`
+
+Get earnings summary.
+
+**Response:** `200 OK`
+
+```json
+{
+  "availableBalance": 50000,
+  "pendingBalance": 10000,
+  "totalEarned": 75000
+}
+```
+
+---
+
+### POST `/api/studio/payouts/request`
+
+Request payout (min 5000 credits).
+
+---
+
+### GET `/api/studio/payouts`
+
+Get payout history.
+
+---
+
+## Error Responses
+
+All errors return:
+
+```json
+{
+  "error": "Error message",
+  "code": "ERROR_CODE"
+}
+```
+
+| Status | Code               | Description                      |
+| ------ | ------------------ | -------------------------------- |
+| 400    | `VALIDATION_ERROR` | Invalid request body             |
+| 401    | `UNAUTHORIZED`     | Missing/invalid auth token       |
+| 403    | `FORBIDDEN`        | Not owner of resource            |
+| 404    | `NOT_FOUND`        | Resource not found               |
+| 409    | `CONFLICT`         | Cannot delete published notebook |
+| 500    | `SERVER_ERROR`     | Internal error                   |
+
+---
+
+## Types Reference
+
+```typescript
+type NotebookStatus = 'draft' | 'published' | 'archived';
+type GpuType = 'T4' | 'L4' | 'A100' | 'H100';
+type NotebookCategory = 'image' | 'text' | 'video' | 'audio' | 'other';
+type PayoutStatus = 'pending' | 'processing' | 'completed' | 'failed';
+```
