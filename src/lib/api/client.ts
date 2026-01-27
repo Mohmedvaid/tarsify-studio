@@ -1,7 +1,8 @@
 import { auth } from '@/lib/firebase/config';
 import type { ApiError } from '@/types/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// Trim trailing slash to prevent double slashes in API URLs
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 
 export class ApiClientError extends Error {
   status: number;
