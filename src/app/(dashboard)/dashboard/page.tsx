@@ -24,13 +24,13 @@ export default function DashboardPage() {
   // Calculate stats (mock data for now since analytics API isn't ready)
   const publishedCount = notebooks.filter((n) => n.status === 'published').length;
   const totalRuns = notebooks.reduce((acc, n) => acc + n.totalRuns, 0);
-  const earningsBalance = developer?.earningsBalance || 0;
+  const totalEarnings = developer?.totalEarnings || 0;
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <PageHeader
-        title={`Welcome back, ${developer?.name?.split(' ')[0] || 'Developer'}!`}
+        title={`Welcome back, ${developer?.displayName?.split(' ')[0] || 'Developer'}!`}
         description="Here's what's happening with your notebooks."
       />
 
@@ -64,9 +64,9 @@ export default function DashboardPage() {
               icon={BarChart3}
             />
             <StatsCard
-              title="Earnings Balance"
-              value={formatCurrency(earningsBalance)}
-              description="Available for payout"
+              title="Total Earnings"
+              value={formatCurrency(totalEarnings)}
+              description="Lifetime earnings"
               icon={DollarSign}
             />
           </>

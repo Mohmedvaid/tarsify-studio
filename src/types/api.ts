@@ -1,7 +1,13 @@
-// API Response Types
+// API Response Types - Backend wraps all responses in { success, data, meta?, error? }
 export interface ApiResponse<T> {
-  data: T;
+  success: boolean;
+  data?: T;
   message?: string;
+  error?: {
+    code: string;
+    message: string;
+    details?: Record<string, unknown>;
+  };
 }
 
 export interface ApiError {
@@ -10,14 +16,17 @@ export interface ApiError {
   status?: number;
 }
 
+// Pagination meta from backend
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+  pagination: PaginationMeta;
 }
 
 // Notebook Types
@@ -29,31 +38,27 @@ export interface Notebook {
   id: string;
   developerId: string;
   title: string;
-  description: string;
-  shortDescription: string;
-  thumbnailUrl?: string;
+  description: string | null;
+  shortDescription: string | null;
+  thumbnailUrl: string | null;
   priceCredits: number;
   gpuType: GpuType;
   category: NotebookCategory;
   status: NotebookStatus;
   totalRuns: number;
-  averageRating?: number;
-  hasFile: boolean;
+  averageRating: number | null;
+  notebookFileUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateNotebookInput {
-  title: string;
-  description: string;
-  shortDescription: string;
-  priceCredits: number;
-  gpuType: GpuType;
-  category: NotebookCategory;
-}
-
-export interface UpdateNotebookInput extends Partial<CreateNotebookInput> {
-  thumbnailUrl?: string;
+  title: string;                    // Required: 3-200 chars
+  gpuType: GpuType;                 // Required
+  priceCredits: number;             // Required: 1-10000
+  description?: string | null;      // Optional: max 10000
+  shortDescription?: string | null; // Optional: max 255
+  category?: NotebookCategory;      // Optional: default 'other'
 }
 
 // Developer Types
@@ -61,28 +66,34 @@ export interface Developer {
   id: string;
   firebaseUid: string;
   email: string;
-  name: string;
-  avatarUrl?: string;
-  bio?: string;
-  earningsBalance: number;
-  payoutEmail?: string;
-  stripeAccountId?: string;
+  displayName: string;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  stripeAccountId?: string | null;
   verified: boolean;
+  profileComplete: boolean;
+  totalEarnings: number;
+  pendingPayout: number;
+  notebookCount: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface RegisterDeveloperInput {
   email: string;
-  name: string;
-  avatarUrl?: string;
+  displayName?: string;
 }
 
 export interface UpdateProfileInput {
-  name?: string;
-  avatarUrl?: string;
-  bio?: string;
+  displayName?: string;
+  avatarUrl?: string | null;
+  bio?: string | null;
+}
+
+export interface CompleteProfileInput {
+  displayName: string;
   payoutEmail?: string;
+  country?: string;
 }
 
 // Analytics Types

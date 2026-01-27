@@ -40,8 +40,7 @@ export function useAuth() {
         // Register new developer
         const input: RegisterDeveloperInput = {
           email: user.email || '',
-          name: user.displayName || 'Developer',
-          avatarUrl: user.photoURL || undefined,
+          displayName: user.displayName || undefined,
         };
         const newDeveloper = await api.post<Developer>(endpoints.auth.register, input);
         setDeveloper(newDeveloper);
@@ -56,16 +55,15 @@ export function useAuth() {
     }
   };
 
-  const register = async (email: string, password: string, name: string) => {
+  const register = async (email: string, password: string, displayName: string) => {
     try {
       // Create Firebase account
-      const credential = await signUpWithEmail(email, password, name);
+      await signUpWithEmail(email, password, displayName);
 
       // Register developer in API
       const input: RegisterDeveloperInput = {
         email,
-        name,
-        avatarUrl: credential.user.photoURL || undefined,
+        displayName,
       };
       const developer = await api.post<Developer>(endpoints.auth.register, input);
       setDeveloper(developer);

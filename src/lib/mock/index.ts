@@ -95,14 +95,14 @@ export const mockNotebooks: Notebook[] = notebookTitles.map((title, index) => ({
   title,
   description: `This is a detailed description for ${title}. It includes information about how the model works, what inputs it accepts, and what outputs it produces. Perfect for AI enthusiasts and professionals alike.`,
   shortDescription: `AI-powered ${title.toLowerCase()} with state-of-the-art performance.`,
-  thumbnailUrl: index % 3 === 0 ? undefined : `https://picsum.photos/seed/${index}/400/300`,
+  thumbnailUrl: index % 3 === 0 ? null : `https://picsum.photos/seed/${index}/400/300`,
   priceCredits: randomBetween(5, 100) * 10,
   gpuType: randomFrom(gpuTypes),
   category: randomFrom(categories),
   status: index < 5 ? 'published' : index < 8 ? 'draft' : 'archived',
   totalRuns: index < 5 ? randomBetween(100, 5000) : 0,
-  averageRating: index < 5 ? 3.5 + Math.random() * 1.5 : undefined,
-  hasFile: index < 7,
+  averageRating: index < 5 ? 3.5 + Math.random() * 1.5 : null,
+  notebookFileUrl: index < 7 ? `uploads/notebooks/nb_${index + 1}.ipynb` : null,
   createdAt: generateDate(randomBetween(7, 90)),
   updatedAt: generateDate(randomBetween(0, 6)),
 }));
@@ -124,7 +124,7 @@ export function getMockNotebooks(params?: {
     filtered = filtered.filter(
       (n) =>
         n.title.toLowerCase().includes(search) ||
-        n.shortDescription.toLowerCase().includes(search)
+        (n.shortDescription?.toLowerCase().includes(search) ?? false)
     );
   }
 
@@ -315,11 +315,13 @@ export function getMockDeveloper(): Developer {
     id: 'dev_001',
     firebaseUid: 'firebase_uid_001',
     email: 'developer@example.com',
-    name: 'Alex Developer',
+    displayName: 'Alex Developer',
     avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=alex',
     bio: 'AI enthusiast building the future of machine learning tools.',
-    earningsBalance: getMockEarningsSummary().availableBalance,
-    payoutEmail: 'payout@example.com',
+    totalEarnings: getMockEarningsSummary().totalEarned,
+    pendingPayout: getMockEarningsSummary().availableBalance,
+    notebookCount: 5,
+    profileComplete: true,
     stripeAccountId: undefined, // Not connected yet
     verified: true,
     createdAt: generateDate(180),

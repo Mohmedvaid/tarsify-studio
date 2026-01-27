@@ -60,7 +60,7 @@ export function PublishDialog({
   const requirements = [
     {
       label: 'Notebook file uploaded',
-      met: notebook.hasFile,
+      met: !!notebook.notebookFileUrl,
       description: 'Upload a .ipynb file with your notebook code',
     },
     {
@@ -70,12 +70,12 @@ export function PublishDialog({
     },
     {
       label: 'Short description provided',
-      met: notebook.shortDescription.length >= 10,
+      met: (notebook.shortDescription?.length ?? 0) >= 10,
       description: 'At least 10 characters',
     },
     {
       label: 'Full description provided',
-      met: notebook.description.length >= 20,
+      met: (notebook.description?.length ?? 0) >= 20,
       description: 'At least 20 characters',
     },
     {

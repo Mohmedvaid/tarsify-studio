@@ -48,7 +48,7 @@ export default function NotebooksPage() {
     data?.data.filter(
       (notebook) =>
         notebook.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        notebook.shortDescription.toLowerCase().includes(searchQuery.toLowerCase())
+        (notebook.shortDescription?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
     ) || [];
 
   const handleDelete = (id: string) => {

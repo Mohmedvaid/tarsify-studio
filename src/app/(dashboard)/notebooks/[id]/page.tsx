@@ -94,7 +94,7 @@ export default function NotebookDetailPage({ params }: NotebookDetailPageProps) 
         </div>
         <div className="flex gap-2">
           {notebook.status === 'draft' ? (
-            <Button onClick={() => setShowPublishDialog(true)} disabled={!notebook.hasFile}>
+            <Button onClick={() => setShowPublishDialog(true)} disabled={!notebook.notebookFileUrl}>
               <Globe className="mr-2 h-4 w-4" />
               Publish
             </Button>
@@ -127,9 +127,13 @@ export default function NotebookDetailPage({ params }: NotebookDetailPageProps) 
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm dark:prose-invert max-w-none">
-                {notebook.description.split('\n').map((paragraph, i) => (
-                  <p key={i}>{paragraph}</p>
-                ))}
+                {notebook.description ? (
+                  notebook.description.split('\n').map((paragraph, i) => (
+                    <p key={i}>{paragraph}</p>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground italic">No description provided</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -141,7 +145,7 @@ export default function NotebookDetailPage({ params }: NotebookDetailPageProps) 
               <CardDescription>The .ipynb file that will be executed when users run your notebook</CardDescription>
             </CardHeader>
             <CardContent>
-              {notebook.hasFile ? (
+              {notebook.notebookFileUrl ? (
                 <div className="flex items-center gap-3 rounded-lg bg-green-50 dark:bg-green-950/30 p-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
                     <FileCode className="h-5 w-5 text-green-600 dark:text-green-400" />

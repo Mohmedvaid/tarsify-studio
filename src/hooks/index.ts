@@ -3,7 +3,6 @@ export {
   useNotebooks,
   useNotebook,
   useCreateNotebook,
-  useUpdateNotebook,
   useDeleteNotebook,
   useUploadNotebookFile,
   useDeleteNotebookFile,

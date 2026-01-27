@@ -1,5 +1,5 @@
 import { auth } from '@/lib/firebase/config';
-import type { ApiError } from '@/types/api';
+import type { PaginationMeta } from '@/types/api';
 
 // Trim trailing slash to prevent double slashes in API URLs
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
@@ -14,6 +14,18 @@ export class ApiClientError extends Error {
     this.status = status;
     this.code = code;
   }
+}
+
+// Backend response wrapper format
+interface BackendResponse<T> {
+  success: boolean;
+  data?: T;
+  meta?: PaginationMeta;
+  error?: {
+    code: string;
+    message: string;
+    details?: Record<string, unknown>;
+  };
 }
 
 async function getAuthToken(): Promise<string | null> {
@@ -76,9 +88,11 @@ async function request<T>(
     let errorCode: string | undefined;
 
     try {
-      const errorData: ApiError = await response.json();
-      errorMessage = errorData.message || errorMessage;
-      errorCode = errorData.code;
+      const errorData = await response.json() as BackendResponse<unknown>;
+      if (errorData.error) {
+        errorMessage = errorData.error.message || errorMessage;
+        errorCode = errorData.error.code;
+      }
     } catch {
       errorMessage = response.statusText || errorMessage;
     }
@@ -91,8 +105,24 @@ async function request<T>(
     return undefined as T;
   }
 
-  // Parse JSON response
-  return response.json();
+  // Parse JSON response and unwrap backend format
+  const json = await response.json() as BackendResponse<T>;
+  
+  // Backend wraps responses in { success, data, meta }
+  // Unwrap and return the data
+  if (json.data !== undefined) {
+    // For paginated responses, transform meta to pagination
+    if (json.meta && Array.isArray(json.data)) {
+      return {
+        data: json.data,
+        pagination: json.meta,
+      } as T;
+    }
+    return json.data;
+  }
+  
+  // Fallback for responses not wrapped
+  return json as unknown as T;
 }
 
 export const api = {
@@ -142,15 +172,24 @@ export const api = {
 
     if (!response.ok) {
       let errorMessage = 'Upload failed';
+      let errorCode: string | undefined;
       try {
-        const errorData: ApiError = await response.json();
-        errorMessage = errorData.message || errorMessage;
+        const errorData = await response.json() as BackendResponse<unknown>;
+        if (errorData.error) {
+          errorMessage = errorData.error.message || errorMessage;
+          errorCode = errorData.error.code;
+        }
       } catch {
         errorMessage = response.statusText || errorMessage;
       }
-      throw new ApiClientError(errorMessage, response.status);
+      throw new ApiClientError(errorMessage, response.status, errorCode);
     }
 
-    return response.json();
+    // Unwrap backend response format
+    const json = await response.json() as BackendResponse<T>;
+    if (json.data !== undefined) {
+      return json.data;
+    }
+    return json as unknown as T;
   },
 };

@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
 interface FileUploadProps {
-  hasFile?: boolean;
+  hasFile?: boolean;  // true if notebookFileUrl is not null
   onUpload: (file: File) => Promise<void>;
   onDelete?: () => Promise<void>;
   isUploading?: boolean;

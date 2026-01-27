@@ -3,10 +3,23 @@ import { api, endpoints } from '@/lib/api';
 import type {
   Notebook,
   CreateNotebookInput,
-  UpdateNotebookInput,
   PaginatedResponse,
 } from '@/types/api';
 import { toast } from 'sonner';
+import {
+  USE_MOCK_DATA,
+  mockDelay,
+  getMockNotebooks,
+  getMockNotebook,
+  mockNotebooks,
+} from '@/lib/mock';
+
+// In-memory mock notebooks for mutations
+let mockNotebooksState: Notebook[] = [...mockNotebooks];
+
+function generateId(): string {
+  return `nb_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
 
 // Query keys
 export const notebookKeys = {
@@ -21,14 +34,23 @@ export const notebookKeys = {
 export function useNotebooks(params?: { page?: number; limit?: number; status?: string }) {
   return useQuery({
     queryKey: notebookKeys.list(params || {}),
-    queryFn: () =>
-      api.get<PaginatedResponse<Notebook>>(endpoints.notebooks.list, {
+    queryFn: async () => {
+      if (USE_MOCK_DATA) {
+        await mockDelay();
+        return getMockNotebooks({
+          page: params?.page,
+          limit: params?.limit,
+          status: params?.status as 'draft' | 'published' | 'archived' | undefined,
+        });
+      }
+      return api.get<PaginatedResponse<Notebook>>(endpoints.notebooks.list, {
         params: {
           page: params?.page,
           limit: params?.limit,
           status: params?.status,
         },
-      }),
+      });
+    },
   });
 }
 
@@ -36,7 +58,17 @@ export function useNotebooks(params?: { page?: number; limit?: number; status?: 
 export function useNotebook(id: string) {
   return useQuery({
     queryKey: notebookKeys.detail(id),
-    queryFn: () => api.get<Notebook>(endpoints.notebooks.get(id)),
+    queryFn: async () => {
+      if (USE_MOCK_DATA) {
+        await mockDelay();
+        const notebook = mockNotebooksState.find((n) => n.id === id) || getMockNotebook(id);
+        if (!notebook) {
+          throw new Error('Notebook not found');
+        }
+        return notebook;
+      }
+      return api.get<Notebook>(endpoints.notebooks.get(id));
+    },
     enabled: !!id,
   });
 }
@@ -46,11 +78,35 @@ export function useCreateNotebook() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateNotebookInput) =>
-      api.post<Notebook>(endpoints.notebooks.create, data),
-    onSuccess: () => {
+    mutationFn: async (data: CreateNotebookInput) => {
+      if (USE_MOCK_DATA) {
+        await mockDelay();
+        const newNotebook: Notebook = {
+          id: generateId(),
+          developerId: 'dev_001',
+          title: data.title,
+          description: data.description ?? null,
+          shortDescription: data.shortDescription ?? null,
+          thumbnailUrl: null,
+          priceCredits: data.priceCredits,
+          gpuType: data.gpuType,
+          category: data.category ?? 'other',
+          status: 'draft',
+          totalRuns: 0,
+          averageRating: null,
+          notebookFileUrl: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        mockNotebooksState = [newNotebook, ...mockNotebooksState];
+        return newNotebook;
+      }
+      return api.post<Notebook>(endpoints.notebooks.create, data);
+    },
+    onSuccess: (newNotebook) => {
       queryClient.invalidateQueries({ queryKey: notebookKeys.lists() });
       toast.success('Notebook created successfully!');
+      return newNotebook;
     },
     onError: (error) => {
       const message = error instanceof Error ? error.message : 'Failed to create notebook';
@@ -59,31 +115,24 @@ export function useCreateNotebook() {
   });
 }
 
-// Update notebook
-export function useUpdateNotebook() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateNotebookInput }) =>
-      api.put<Notebook>(endpoints.notebooks.update(id), data),
-    onSuccess: (updatedNotebook) => {
-      queryClient.invalidateQueries({ queryKey: notebookKeys.lists() });
-      queryClient.setQueryData(notebookKeys.detail(updatedNotebook.id), updatedNotebook);
-      toast.success('Notebook updated successfully!');
-    },
-    onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Failed to update notebook';
-      toast.error(message);
-    },
-  });
-}
+// NOTE: Backend does not have an update endpoint. To modify a notebook:
+// 1. Delete the existing one
+// 2. Create a new one with updated data
+// Or wait for backend to implement PATCH /api/studio/notebooks/:id
 
 // Delete notebook
 export function useDeleteNotebook() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => api.delete(endpoints.notebooks.delete(id)),
+    mutationFn: async (id: string) => {
+      if (USE_MOCK_DATA) {
+        await mockDelay();
+        mockNotebooksState = mockNotebooksState.filter((n) => n.id !== id);
+        return;
+      }
+      return api.delete(endpoints.notebooks.delete(id));
+    },
     onSuccess: (_, deletedId) => {
       queryClient.invalidateQueries({ queryKey: notebookKeys.lists() });
       queryClient.removeQueries({ queryKey: notebookKeys.detail(deletedId) });
@@ -101,8 +150,28 @@ export function useUploadNotebookFile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, file }: { id: string; file: File }) =>
-      api.upload<Notebook>(endpoints.notebooks.file(id), file),
+    mutationFn: async ({ id, file }: { id: string; file: File }) => {
+      if (USE_MOCK_DATA) {
+        await mockDelay();
+        const index = mockNotebooksState.findIndex((n) => n.id === id);
+        if (index === -1) {
+          throw new Error('Notebook not found');
+        }
+        // Validate file is .ipynb
+        if (!file.name.endsWith('.ipynb')) {
+          throw new Error('Only .ipynb files are allowed');
+        }
+        const current = mockNotebooksState[index]!;
+        const updated: Notebook = {
+          ...current,
+          notebookFileUrl: `uploads/notebooks/${id}.ipynb`,
+          updatedAt: new Date().toISOString(),
+        };
+        mockNotebooksState[index] = updated;
+        return updated;
+      }
+      return api.upload<Notebook>(endpoints.notebooks.file(id), file);
+    },
     onSuccess: (updatedNotebook) => {
       queryClient.invalidateQueries({ queryKey: notebookKeys.lists() });
       queryClient.setQueryData(notebookKeys.detail(updatedNotebook.id), updatedNotebook);
@@ -120,7 +189,24 @@ export function useDeleteNotebookFile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => api.delete<Notebook>(endpoints.notebooks.file(id)),
+    mutationFn: async (id: string) => {
+      if (USE_MOCK_DATA) {
+        await mockDelay();
+        const index = mockNotebooksState.findIndex((n) => n.id === id);
+        if (index === -1) {
+          throw new Error('Notebook not found');
+        }
+        const current = mockNotebooksState[index]!;
+        const updated: Notebook = {
+          ...current,
+          notebookFileUrl: null,
+          updatedAt: new Date().toISOString(),
+        };
+        mockNotebooksState[index] = updated;
+        return updated;
+      }
+      return api.delete<Notebook>(endpoints.notebooks.file(id));
+    },
     onSuccess: (updatedNotebook) => {
       queryClient.invalidateQueries({ queryKey: notebookKeys.lists() });
       queryClient.setQueryData(notebookKeys.detail(updatedNotebook.id), updatedNotebook);
@@ -138,7 +224,27 @@ export function usePublishNotebook() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => api.post<Notebook>(endpoints.notebooks.publish(id)),
+    mutationFn: async (id: string) => {
+      if (USE_MOCK_DATA) {
+        await mockDelay();
+        const index = mockNotebooksState.findIndex((n) => n.id === id);
+        if (index === -1) {
+          throw new Error('Notebook not found');
+        }
+        const notebook = mockNotebooksState[index]!;
+        if (!notebook.notebookFileUrl) {
+          throw new Error('Cannot publish notebook without a file');
+        }
+        const updated: Notebook = {
+          ...notebook,
+          status: 'published',
+          updatedAt: new Date().toISOString(),
+        };
+        mockNotebooksState[index] = updated;
+        return updated;
+      }
+      return api.post<Notebook>(endpoints.notebooks.publish(id));
+    },
     onSuccess: (updatedNotebook) => {
       queryClient.invalidateQueries({ queryKey: notebookKeys.lists() });
       queryClient.setQueryData(notebookKeys.detail(updatedNotebook.id), updatedNotebook);
@@ -156,7 +262,24 @@ export function useUnpublishNotebook() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => api.post<Notebook>(endpoints.notebooks.unpublish(id)),
+    mutationFn: async (id: string) => {
+      if (USE_MOCK_DATA) {
+        await mockDelay();
+        const index = mockNotebooksState.findIndex((n) => n.id === id);
+        if (index === -1) {
+          throw new Error('Notebook not found');
+        }
+        const current = mockNotebooksState[index]!;
+        const updated: Notebook = {
+          ...current,
+          status: 'draft',
+          updatedAt: new Date().toISOString(),
+        };
+        mockNotebooksState[index] = updated;
+        return updated;
+      }
+      return api.post<Notebook>(endpoints.notebooks.unpublish(id));
+    },
     onSuccess: (updatedNotebook) => {
       queryClient.invalidateQueries({ queryKey: notebookKeys.lists() });
       queryClient.setQueryData(notebookKeys.detail(updatedNotebook.id), updatedNotebook);

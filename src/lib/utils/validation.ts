@@ -8,7 +8,7 @@ export const loginSchema = z.object({
 
 export const registerSchema = z
   .object({
-    name: z.string().min(2, 'Name must be at least 2 characters'),
+    displayName: z.string().min(2, 'Display name must be at least 2 characters'),
     email: z.string().email('Please enter a valid email address'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
@@ -49,9 +49,9 @@ export const updateNotebookSchema = createNotebookSchema.partial();
 
 // Profile schemas
 export const updateProfileSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+  displayName: z.string().min(2, 'Display name must be at least 2 characters').optional(),
   bio: z.string().max(500, 'Bio is too long').optional(),
-  payoutEmail: z.string().email('Please enter a valid email address').optional().or(z.literal('')),
+  avatarUrl: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
 });
 
 // Type exports

@@ -29,7 +29,7 @@ export default function RegisterPage() {
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: '',
+      displayName: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -40,7 +40,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      await registerUser(data.email, data.password, data.name);
+      await registerUser(data.email, data.password, data.displayName);
     } catch {
       // Error is handled in useAuth
     } finally {
@@ -112,10 +112,10 @@ export default function RegisterPage() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="name"
+              name="displayName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Display Name</FormLabel>
                   <FormControl>
                     <Input placeholder="John Doe" disabled={isFormDisabled} {...field} />
                   </FormControl>

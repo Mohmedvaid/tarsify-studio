@@ -7,7 +7,6 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, Trash2, Globe, GlobeLock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { NotebookForm } from '@/components/notebooks/notebook-form';
 import { FileUpload } from '@/components/notebooks/file-upload';
 import { PublishDialog } from '@/components/notebooks/publish-dialog';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
@@ -15,14 +14,12 @@ import { LoadingSpinner } from '@/components/shared/loading-spinner';
 import { NotebookStatusBadge } from '@/components/notebooks/notebook-status-badge';
 import {
   useNotebook,
-  useUpdateNotebook,
   useDeleteNotebook,
   useUploadNotebookFile,
   useDeleteNotebookFile,
   usePublishNotebook,
   useUnpublishNotebook,
 } from '@/hooks/use-notebooks';
-import type { CreateNotebookFormData } from '@/lib/utils/validation';
 
 interface NotebookEditPageProps {
   params: Promise<{ id: string }>;
@@ -33,7 +30,6 @@ export default function NotebookEditPage({ params }: NotebookEditPageProps) {
   const router = useRouter();
   const { data: notebook, isLoading, error } = useNotebook(id);
 
-  const updateNotebook = useUpdateNotebook();
   const deleteNotebook = useDeleteNotebook();
   const uploadFile = useUploadNotebookFile();
   const deleteFile = useDeleteNotebookFile();
@@ -54,20 +50,6 @@ export default function NotebookEditPage({ params }: NotebookEditPageProps) {
   if (error || !notebook) {
     notFound();
   }
-
-  const handleSubmit = async (data: CreateNotebookFormData) => {
-    await updateNotebook.mutateAsync({
-      id: notebook.id,
-      data: {
-        title: data.title,
-        shortDescription: data.shortDescription,
-        description: data.description,
-        category: data.category,
-        gpuType: data.gpuType,
-        priceCredits: data.priceCredits,
-      },
-    });
-  };
 
   const handleFileUpload = async (file: File) => {
     await uploadFile.mutateAsync({ id: notebook.id, file });
@@ -109,18 +91,41 @@ export default function NotebookEditPage({ params }: NotebookEditPageProps) {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Edit Form */}
+          {/* Notebook Details (Read-only) */}
           <Card>
             <CardHeader>
-              <CardTitle>Edit Notebook</CardTitle>
-              <CardDescription>Update your notebook details and settings</CardDescription>
+              <CardTitle>Notebook Details</CardTitle>
+              <CardDescription>
+                Notebook metadata cannot be edited after creation. To make changes, create a new notebook.
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <NotebookForm
-                notebook={notebook}
-                onSubmit={handleSubmit}
-                isSubmitting={updateNotebook.isPending}
-              />
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Title</label>
+                <p className="mt-1">{notebook.title}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Short Description</label>
+                <p className="mt-1">{notebook.shortDescription || <span className="italic text-muted-foreground">Not provided</span>}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Description</label>
+                <p className="mt-1 whitespace-pre-wrap">{notebook.description || <span className="italic text-muted-foreground">Not provided</span>}</p>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Category</label>
+                  <p className="mt-1 capitalize">{notebook.category}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">GPU Type</label>
+                  <p className="mt-1">{notebook.gpuType}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Price</label>
+                  <p className="mt-1">{notebook.priceCredits} credits</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -134,7 +139,7 @@ export default function NotebookEditPage({ params }: NotebookEditPageProps) {
             </CardHeader>
             <CardContent>
               <FileUpload
-                hasFile={notebook.hasFile}
+                hasFile={!!notebook.notebookFileUrl}
                 onUpload={handleFileUpload}
                 onDelete={handleFileDelete}
                 isUploading={uploadFile.isPending}
@@ -163,7 +168,7 @@ export default function NotebookEditPage({ params }: NotebookEditPageProps) {
                 <Button
                   className="w-full"
                   onClick={() => setShowPublishDialog(true)}
-                  disabled={!notebook.hasFile}
+                  disabled={!notebook.notebookFileUrl}
                 >
                   <Globe className="mr-2 h-4 w-4" />
                   Publish Notebook
@@ -191,7 +196,7 @@ export default function NotebookEditPage({ params }: NotebookEditPageProps) {
                   </Button>
                 </>
               )}
-              {!notebook.hasFile && notebook.status === 'draft' && (
+              {!notebook.notebookFileUrl && notebook.status === 'draft' && (
                 <p className="text-sm text-muted-foreground text-center">
                   Upload a notebook file to enable publishing
                 </p>

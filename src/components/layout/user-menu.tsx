@@ -19,7 +19,7 @@ import { getInitials } from '@/lib/utils/format';
 export function UserMenu() {
   const { user, developer, logout } = useAuth();
 
-  const displayName = developer?.name || user?.displayName || 'Developer';
+  const displayName = developer?.displayName || user?.displayName || 'Developer';
   const email = developer?.email || user?.email || '';
   const avatarUrl = developer?.avatarUrl || user?.photoURL || '';
 

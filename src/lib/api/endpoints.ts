@@ -9,12 +9,18 @@ export const endpoints = {
     completeProfile: '/api/studio/auth/complete-profile',
   },
 
+  // Developer Profile (alias to auth for clarity)
+  developers: {
+    me: '/api/studio/auth/me',
+    update: '/api/studio/auth/profile',
+    completeProfile: '/api/studio/auth/complete-profile',
+  },
+
   // Notebooks
   notebooks: {
     list: '/api/studio/notebooks',
     create: '/api/studio/notebooks',
     get: (id: string) => `/api/studio/notebooks/${id}`,
-    update: (id: string) => `/api/studio/notebooks/${id}`,
     delete: (id: string) => `/api/studio/notebooks/${id}`,
     file: (id: string) => `/api/studio/notebooks/${id}/file`,
     publish: (id: string) => `/api/studio/notebooks/${id}/publish`,

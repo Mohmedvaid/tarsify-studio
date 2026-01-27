@@ -104,7 +104,7 @@ export function NotebookCard({
                 {notebook.status === 'draft' ? (
                   <DropdownMenuItem
                     onClick={() => onPublish?.(notebook.id)}
-                    disabled={isPublishing || !notebook.hasFile}
+                    disabled={isPublishing || !notebook.notebookFileUrl}
                   >
                     <Globe className="mr-2 h-4 w-4" />
                     Publish
