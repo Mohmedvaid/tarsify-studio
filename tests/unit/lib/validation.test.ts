@@ -34,7 +34,7 @@ describe('validation schemas', () => {
   describe('registerSchema', () => {
     it('validates correct registration data', () => {
       const validData = {
-        name: 'Test User',
+        displayName: 'Test User',
         email: 'test@example.com',
         password: 'password123',
         confirmPassword: 'password123',
@@ -46,7 +46,7 @@ describe('validation schemas', () => {
 
     it('rejects mismatched passwords', () => {
       const invalidData = {
-        name: 'Test User',
+        displayName: 'Test User',
         email: 'test@example.com',
         password: 'password123',
         confirmPassword: 'different123',
@@ -56,9 +56,9 @@ describe('validation schemas', () => {
       expect(result.success).toBe(false);
     });
 
-    it('rejects short name', () => {
+    it('rejects short displayName', () => {
       const invalidData = {
-        name: 'A',
+        displayName: 'A',
         email: 'test@example.com',
         password: 'password123',
         confirmPassword: 'password123',
@@ -70,7 +70,7 @@ describe('validation schemas', () => {
 
     it('rejects when terms not accepted', () => {
       const invalidData = {
-        name: 'Test User',
+        displayName: 'Test User',
         email: 'test@example.com',
         password: 'password123',
         confirmPassword: 'password123',
