@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "tarsify-studio"
-  }
+  },
+  "targets": {
+    "tarsify-studio": {
+      "hosting": {
+        "studio": [
+          "tarsify-studio"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
