@@ -18,7 +18,6 @@ export {
   useRecentRuns,
   analyticsKeys,
 } from './use-analytics';
-export type { AnalyticsTrends, TopNotebook, RecentRun } from './use-analytics';
 export {
   useEarningsSummary,
   useEarningsBreakdown,
@@ -26,3 +25,4 @@ export {
   useRequestPayout,
   earningsKeys,
 } from './use-earnings';
+export { useDeveloperProfile, useUpdateProfile, useCompleteProfile, developerKeys } from './use-developer';

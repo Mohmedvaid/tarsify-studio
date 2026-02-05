@@ -138,3 +138,34 @@ export interface Payout {
   createdAt: string;
   completedAt?: string;
 }
+
+// Analytics Trends (time series data)
+export interface TimeSeriesDataPoint {
+  date: string;
+  value: number;
+}
+
+export interface AnalyticsTrends {
+  runs: TimeSeriesDataPoint[];
+  earnings: TimeSeriesDataPoint[];
+  views: TimeSeriesDataPoint[];
+}
+
+export interface TopNotebook {
+  notebookId: string;
+  title: string;
+  runs: number;
+  earnings: number;
+  trend: number; // percentage change
+}
+
+export interface RecentRun {
+  id: string;
+  notebookId: string;
+  notebookTitle: string;
+  userId: string;
+  creditsEarned: number;
+  duration: number; // in seconds
+  status: 'completed' | 'failed' | 'running';
+  runAt: string;
+}

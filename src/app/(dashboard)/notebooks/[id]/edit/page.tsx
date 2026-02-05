@@ -2,19 +2,16 @@
 
 import { use, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Trash2, Globe, GlobeLock } from 'lucide-react';
+import { ArrowLeft, Globe, GlobeLock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileUpload } from '@/components/notebooks/file-upload';
 import { PublishDialog } from '@/components/notebooks/publish-dialog';
-import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { LoadingSpinner } from '@/components/shared/loading-spinner';
 import { NotebookStatusBadge } from '@/components/notebooks/notebook-status-badge';
 import {
   useNotebook,
-  useDeleteNotebook,
   useUploadNotebookFile,
   useDeleteNotebookFile,
   usePublishNotebook,
@@ -27,16 +24,13 @@ interface NotebookEditPageProps {
 
 export default function NotebookEditPage({ params }: NotebookEditPageProps) {
   const { id } = use(params);
-  const router = useRouter();
   const { data: notebook, isLoading, error } = useNotebook(id);
 
-  const deleteNotebook = useDeleteNotebook();
   const uploadFile = useUploadNotebookFile();
   const deleteFile = useDeleteNotebookFile();
   const publishNotebook = usePublishNotebook();
   const unpublishNotebook = useUnpublishNotebook();
 
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPublishDialog, setShowPublishDialog] = useState(false);
 
   if (isLoading) {
@@ -57,12 +51,6 @@ export default function NotebookEditPage({ params }: NotebookEditPageProps) {
 
   const handleFileDelete = async () => {
     await deleteFile.mutateAsync(notebook.id);
-  };
-
-  const handleDelete = () => {
-    deleteNotebook.mutate(notebook.id, {
-      onSuccess: () => router.push('/notebooks'),
-    });
   };
 
   const handlePublish = () => {
@@ -204,39 +192,8 @@ export default function NotebookEditPage({ params }: NotebookEditPageProps) {
             </CardContent>
           </Card>
 
-          {/* Danger Zone */}
-          <Card className="border-destructive/50">
-            <CardHeader>
-              <CardTitle className="text-destructive">Danger Zone</CardTitle>
-              <CardDescription>
-                Permanently delete this notebook. This action cannot be undone.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                variant="destructive"
-                className="w-full"
-                onClick={() => setShowDeleteDialog(true)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Notebook
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       </div>
-
-      {/* Dialogs */}
-      <ConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Delete Notebook"
-        description={`Are you sure you want to delete "${notebook.title}"? This action cannot be undone and all associated data will be permanently removed.`}
-        confirmLabel="Delete"
-        variant="destructive"
-        onConfirm={handleDelete}
-        isLoading={deleteNotebook.isPending}
-      />
 
       <PublishDialog
         open={showPublishDialog}

@@ -1,31 +1,14 @@
-'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MoreHorizontal, Pencil, Trash2, Eye, Globe, GlobeLock, FileCode } from 'lucide-react';
+import { FileCode } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { NotebookStatusBadge } from './notebook-status-badge';
-import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import type { Notebook } from '@/types/api';
 import { formatDate, formatCredits } from '@/lib/utils/format';
 import { cn } from '@/lib/utils';
 
 interface NotebookCardProps {
   notebook: Notebook;
-  onDelete?: (id: string) => void;
-  onPublish?: (id: string) => void;
-  onUnpublish?: (id: string) => void;
-  isDeleting?: boolean;
-  isPublishing?: boolean;
 }
 
 const categoryColors: Record<string, string> = {
@@ -43,24 +26,10 @@ const gpuColors: Record<string, string> = {
   H100: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
 };
 
-export function NotebookCard({
-  notebook,
-  onDelete,
-  onPublish,
-  onUnpublish,
-  isDeleting,
-  isPublishing,
-}: NotebookCardProps) {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
-  const handleDelete = () => {
-    onDelete?.(notebook.id);
-    setShowDeleteDialog(false);
-  };
-
+export function NotebookCard({ notebook }: NotebookCardProps) {
   return (
-    <>
-      <Card className="group overflow-hidden transition-all hover:shadow-md">
+    <Link href={`/notebooks/${notebook.id}`} className="block">
+      <Card className="overflow-hidden transition-all hover:shadow-md cursor-pointer">
         {/* Thumbnail */}
         <div className="relative aspect-video bg-muted">
           {notebook.thumbnailUrl ? (
@@ -79,66 +48,11 @@ export function NotebookCard({
           <div className="absolute top-2 left-2">
             <NotebookStatusBadge status={notebook.status} />
           </div>
-          {/* Action menu */}
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href={`/notebooks/${notebook.id}`}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    View
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href={`/notebooks/${notebook.id}/edit`}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Edit
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {notebook.status === 'draft' ? (
-                  <DropdownMenuItem
-                    onClick={() => onPublish?.(notebook.id)}
-                    disabled={isPublishing || !notebook.notebookFileUrl}
-                  >
-                    <Globe className="mr-2 h-4 w-4" />
-                    Publish
-                  </DropdownMenuItem>
-                ) : notebook.status === 'published' ? (
-                  <DropdownMenuItem
-                    onClick={() => onUnpublish?.(notebook.id)}
-                    disabled={isPublishing}
-                  >
-                    <GlobeLock className="mr-2 h-4 w-4" />
-                    Unpublish
-                  </DropdownMenuItem>
-                ) : null}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={() => setShowDeleteDialog(true)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         </div>
 
         <CardContent className="p-4">
           {/* Title */}
-          <Link
-            href={`/notebooks/${notebook.id}`}
-            className="font-semibold hover:underline line-clamp-1"
-          >
-            {notebook.title}
-          </Link>
+          <h3 className="font-semibold line-clamp-1">{notebook.title}</h3>
           {/* Description */}
           <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
             {notebook.shortDescription}
@@ -171,17 +85,6 @@ export function NotebookCard({
           </span>
         </CardFooter>
       </Card>
-
-      <ConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Delete Notebook"
-        description={`Are you sure you want to delete "${notebook.title}"? This action cannot be undone.`}
-        confirmLabel="Delete"
-        variant="destructive"
-        onConfirm={handleDelete}
-        isLoading={isDeleting}
-      />
-    </>
+    </Link>
   );
 }

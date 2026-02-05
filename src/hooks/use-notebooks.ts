@@ -6,20 +6,6 @@ import type {
   PaginatedResponse,
 } from '@/types/api';
 import { toast } from 'sonner';
-import {
-  USE_MOCK_DATA,
-  mockDelay,
-  getMockNotebooks,
-  getMockNotebook,
-  mockNotebooks,
-} from '@/lib/mock';
-
-// In-memory mock notebooks for mutations
-let mockNotebooksState: Notebook[] = [...mockNotebooks];
-
-function generateId(): string {
-  return `nb_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-}
 
 // Query keys
 export const notebookKeys = {
@@ -35,14 +21,6 @@ export function useNotebooks(params?: { page?: number; limit?: number; status?: 
   return useQuery({
     queryKey: notebookKeys.list(params || {}),
     queryFn: async () => {
-      if (USE_MOCK_DATA) {
-        await mockDelay();
-        return getMockNotebooks({
-          page: params?.page,
-          limit: params?.limit,
-          status: params?.status as 'draft' | 'published' | 'archived' | undefined,
-        });
-      }
       return api.get<PaginatedResponse<Notebook>>(endpoints.notebooks.list, {
         params: {
           page: params?.page,
@@ -59,14 +37,6 @@ export function useNotebook(id: string) {
   return useQuery({
     queryKey: notebookKeys.detail(id),
     queryFn: async () => {
-      if (USE_MOCK_DATA) {
-        await mockDelay();
-        const notebook = mockNotebooksState.find((n) => n.id === id) || getMockNotebook(id);
-        if (!notebook) {
-          throw new Error('Notebook not found');
-        }
-        return notebook;
-      }
       return api.get<Notebook>(endpoints.notebooks.get(id));
     },
     enabled: !!id,
@@ -79,28 +49,6 @@ export function useCreateNotebook() {
 
   return useMutation({
     mutationFn: async (data: CreateNotebookInput) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay();
-        const newNotebook: Notebook = {
-          id: generateId(),
-          developerId: 'dev_001',
-          title: data.title,
-          description: data.description ?? null,
-          shortDescription: data.shortDescription ?? null,
-          thumbnailUrl: null,
-          priceCredits: data.priceCredits,
-          gpuType: data.gpuType,
-          category: data.category ?? 'other',
-          status: 'draft',
-          totalRuns: 0,
-          averageRating: null,
-          notebookFileUrl: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        mockNotebooksState = [newNotebook, ...mockNotebooksState];
-        return newNotebook;
-      }
       return api.post<Notebook>(endpoints.notebooks.create, data);
     },
     onSuccess: (newNotebook) => {
@@ -126,11 +74,6 @@ export function useDeleteNotebook() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay();
-        mockNotebooksState = mockNotebooksState.filter((n) => n.id !== id);
-        return;
-      }
       return api.delete(endpoints.notebooks.delete(id));
     },
     onSuccess: (_, deletedId) => {
@@ -151,24 +94,9 @@ export function useUploadNotebookFile() {
 
   return useMutation({
     mutationFn: async ({ id, file }: { id: string; file: File }) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay();
-        const index = mockNotebooksState.findIndex((n) => n.id === id);
-        if (index === -1) {
-          throw new Error('Notebook not found');
-        }
-        // Validate file is .ipynb
-        if (!file.name.endsWith('.ipynb')) {
-          throw new Error('Only .ipynb files are allowed');
-        }
-        const current = mockNotebooksState[index]!;
-        const updated: Notebook = {
-          ...current,
-          notebookFileUrl: `uploads/notebooks/${id}.ipynb`,
-          updatedAt: new Date().toISOString(),
-        };
-        mockNotebooksState[index] = updated;
-        return updated;
+      // Validate file is .ipynb
+      if (!file.name.endsWith('.ipynb')) {
+        throw new Error('Only .ipynb files are allowed');
       }
       return api.upload<Notebook>(endpoints.notebooks.file(id), file);
     },
@@ -190,21 +118,6 @@ export function useDeleteNotebookFile() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay();
-        const index = mockNotebooksState.findIndex((n) => n.id === id);
-        if (index === -1) {
-          throw new Error('Notebook not found');
-        }
-        const current = mockNotebooksState[index]!;
-        const updated: Notebook = {
-          ...current,
-          notebookFileUrl: null,
-          updatedAt: new Date().toISOString(),
-        };
-        mockNotebooksState[index] = updated;
-        return updated;
-      }
       return api.delete<Notebook>(endpoints.notebooks.file(id));
     },
     onSuccess: (updatedNotebook) => {
@@ -225,24 +138,6 @@ export function usePublishNotebook() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay();
-        const index = mockNotebooksState.findIndex((n) => n.id === id);
-        if (index === -1) {
-          throw new Error('Notebook not found');
-        }
-        const notebook = mockNotebooksState[index]!;
-        if (!notebook.notebookFileUrl) {
-          throw new Error('Cannot publish notebook without a file');
-        }
-        const updated: Notebook = {
-          ...notebook,
-          status: 'published',
-          updatedAt: new Date().toISOString(),
-        };
-        mockNotebooksState[index] = updated;
-        return updated;
-      }
       return api.post<Notebook>(endpoints.notebooks.publish(id));
     },
     onSuccess: (updatedNotebook) => {
@@ -263,21 +158,6 @@ export function useUnpublishNotebook() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (USE_MOCK_DATA) {
-        await mockDelay();
-        const index = mockNotebooksState.findIndex((n) => n.id === id);
-        if (index === -1) {
-          throw new Error('Notebook not found');
-        }
-        const current = mockNotebooksState[index]!;
-        const updated: Notebook = {
-          ...current,
-          status: 'draft',
-          updatedAt: new Date().toISOString(),
-        };
-        mockNotebooksState[index] = updated;
-        return updated;
-      }
       return api.post<Notebook>(endpoints.notebooks.unpublish(id));
     },
     onSuccess: (updatedNotebook) => {

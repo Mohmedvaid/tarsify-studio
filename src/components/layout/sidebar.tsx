@@ -18,7 +18,6 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Notebooks', href: '/notebooks', icon: BookOpen },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Earnings', href: '/earnings', icon: DollarSign },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

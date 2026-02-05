@@ -25,9 +25,9 @@ This document covers the deployment setup for Tarsify Studio.
 
 ## Environments
 
-| Environment | URL | Branch |
-|-------------|-----|--------|
-| Production | https://tarsify-studio-backend--tarsify-studio.us-central1.hosted.app | `main` |
+| Environment | URL                                                                   | Branch |
+| ----------- | --------------------------------------------------------------------- | ------ |
+| Production  | https://tarsify-studio-backend--tarsify-studio.us-central1.hosted.app | `main` |
 
 ## CI/CD Pipeline
 
@@ -74,12 +74,12 @@ env:
 
 ### GCP Secret Manager Secrets
 
-| Secret Name | Description |
-|-------------|-------------|
-| `firebase-api-key` | Firebase Web API Key |
-| `firebase-storage-bucket` | Firebase Storage Bucket |
+| Secret Name                    | Description                  |
+| ------------------------------ | ---------------------------- |
+| `firebase-api-key`             | Firebase Web API Key         |
+| `firebase-storage-bucket`      | Firebase Storage Bucket      |
 | `firebase-messaging-sender-id` | Firebase Messaging Sender ID |
-| `firebase-app-id` | Firebase App ID |
+| `firebase-app-id`              | Firebase App ID              |
 
 ## Initial Setup Steps
 
@@ -132,11 +132,11 @@ firebase apphosting:secrets:grantaccess firebase-app-id --backend=tarsify-studio
 
 Go to **GitHub > Settings > Secrets and variables > Actions** and add:
 
-| Secret | Description |
-|--------|-------------|
-| `GCP_SERVICE_ACCOUNT_KEY` | Service account JSON key |
-| `FIREBASE_WEB_APP_ID` | Firebase Web App ID |
-| `FIREBASE_TOKEN` | Firebase CI token (optional) |
+| Secret                    | Description                  |
+| ------------------------- | ---------------------------- |
+| `GCP_SERVICE_ACCOUNT_KEY` | Service account JSON key     |
+| `FIREBASE_WEB_APP_ID`     | Firebase Web App ID          |
+| `FIREBASE_TOKEN`          | Firebase CI token (optional) |
 
 ### 7. Create Service Account for GitHub Actions
 
@@ -174,6 +174,7 @@ git push origin main
 ```
 
 This triggers:
+
 1. GitHub Actions CI pipeline (lint, test, security, build check)
 2. Firebase App Hosting build and deploy
 

@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const notebooks = notebooksData?.data || [];
   const totalNotebooks = notebooksData?.pagination?.total || 0;
 
-  // Calculate stats (mock data for now since analytics API isn't ready)
+  // Calculate stats from notebooks data
   const publishedCount = notebooks.filter((n) => n.status === 'published').length;
   const totalRuns = notebooks.reduce((acc, n) => acc + n.totalRuns, 0);
   const totalEarnings = developer?.totalEarnings || 0;

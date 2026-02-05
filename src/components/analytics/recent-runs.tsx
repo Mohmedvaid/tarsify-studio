@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { Play, Clock, Coins } from 'lucide-react';
-import type { RecentRun } from '@/lib/mock';
+import type { RecentRun } from '@/types';
 import Link from 'next/link';
 
 interface RecentRunsProps {

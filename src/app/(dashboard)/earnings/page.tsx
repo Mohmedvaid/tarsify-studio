@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StatsCard, StatsCardSkeleton, BarChartHorizontal } from '@/components/analytics';
 import { useEarningsSummary, useEarningsBreakdown, usePayouts, useRequestPayout } from '@/hooks/use-earnings';
 import { formatCredits } from '@/lib/utils/format';
-import { Wallet, Clock, Coins, ArrowUpRight, TrendingUp, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Wallet, Clock, Coins, ArrowUpRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -197,13 +197,6 @@ export default function EarningsPage() {
             )}
           </CardContent>
         </Card>
-      </div>
-
-      {/* Note about mock data */}
-      <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-        <TrendingUp className="h-4 w-4 inline mr-2" />
-        This page uses <span className="font-medium">mock data</span> for demonstration.
-        See <code className="text-xs bg-muted px-1 rounded">DEVELOPMENT.md</code> for details.
       </div>
     </div>
   );

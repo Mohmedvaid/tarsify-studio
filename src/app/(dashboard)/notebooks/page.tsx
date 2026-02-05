@@ -17,12 +17,7 @@ import { NotebookCard } from '@/components/notebooks/notebook-card';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
 import { LoadingSpinner } from '@/components/shared/loading-spinner';
-import {
-  useNotebooks,
-  useDeleteNotebook,
-  usePublishNotebook,
-  useUnpublishNotebook,
-} from '@/hooks/use-notebooks';
+import { useNotebooks } from '@/hooks/use-notebooks';
 import type { NotebookStatus } from '@/types/api';
 
 type ViewMode = 'grid' | 'list';
@@ -39,10 +34,6 @@ export default function NotebooksPage() {
     status: statusFilter === 'all' ? undefined : statusFilter,
   });
 
-  const deleteNotebook = useDeleteNotebook();
-  const publishNotebook = usePublishNotebook();
-  const unpublishNotebook = useUnpublishNotebook();
-
   // Filter notebooks by search query (client-side)
   const filteredNotebooks =
     data?.data.filter(
@@ -50,18 +41,6 @@ export default function NotebooksPage() {
         notebook.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (notebook.shortDescription?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
     ) || [];
-
-  const handleDelete = (id: string) => {
-    deleteNotebook.mutate(id);
-  };
-
-  const handlePublish = (id: string) => {
-    publishNotebook.mutate(id);
-  };
-
-  const handleUnpublish = (id: string) => {
-    unpublishNotebook.mutate(id);
-  };
 
   return (
     <div className="space-y-6">
@@ -158,15 +137,7 @@ export default function NotebooksPage() {
           {viewMode === 'grid' && (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredNotebooks.map((notebook) => (
-                <NotebookCard
-                  key={notebook.id}
-                  notebook={notebook}
-                  onDelete={handleDelete}
-                  onPublish={handlePublish}
-                  onUnpublish={handleUnpublish}
-                  isDeleting={deleteNotebook.isPending}
-                  isPublishing={publishNotebook.isPending || unpublishNotebook.isPending}
-                />
+                <NotebookCard key={notebook.id} notebook={notebook} />
               ))}
             </div>
           )}
@@ -175,15 +146,7 @@ export default function NotebooksPage() {
           {viewMode === 'list' && (
             <div className="space-y-4">
               {filteredNotebooks.map((notebook) => (
-                <NotebookCard
-                  key={notebook.id}
-                  notebook={notebook}
-                  onDelete={handleDelete}
-                  onPublish={handlePublish}
-                  onUnpublish={handleUnpublish}
-                  isDeleting={deleteNotebook.isPending}
-                  isPublishing={publishNotebook.isPending || unpublishNotebook.isPending}
-                />
+                <NotebookCard key={notebook.id} notebook={notebook} />
               ))}
             </div>
           )}
