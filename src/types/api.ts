@@ -21,47 +21,18 @@ export interface PaginationMeta {
   page: number;
   limit: number;
   total: number;
-  totalPages: number;
+  pages: number;
 }
 
 export interface PaginatedResponse<T> {
   data: T[];
-  pagination: PaginationMeta;
+  meta: PaginationMeta;
 }
 
-// Notebook Types
-export type NotebookStatus = 'draft' | 'published' | 'archived';
-export type GpuType = 'T4' | 'L4' | 'A100' | 'H100';
-export type NotebookCategory = 'image' | 'text' | 'video' | 'audio' | 'other';
-
-export interface Notebook {
-  id: string;
-  developerId: string;
-  title: string;
-  description: string | null;
-  shortDescription: string | null;
-  thumbnailUrl: string | null;
-  priceCredits: number;
-  gpuType: GpuType;
-  category: NotebookCategory;
-  status: NotebookStatus;
-  totalRuns: number;
-  averageRating: number | null;
-  notebookFileUrl: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateNotebookInput {
-  title: string;                    // Required: 3-200 chars
-  gpuType: GpuType;                 // Required
-  priceCredits: number;             // Required: 1-10000
-  description?: string | null;      // Optional: max 10000
-  shortDescription?: string | null; // Optional: max 255
-  category?: NotebookCategory;      // Optional: default 'other'
-}
-
+// ============================================
 // Developer Types
+// ============================================
+
 export interface Developer {
   id: string;
   firebaseUid: string;
@@ -74,7 +45,7 @@ export interface Developer {
   profileComplete: boolean;
   totalEarnings: number;
   pendingPayout: number;
-  notebookCount: number;
+  modelCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -96,76 +67,116 @@ export interface CompleteProfileInput {
   country?: string;
 }
 
-// Analytics Types
-export interface AnalyticsOverview {
-  totalNotebooks: number;
-  totalRuns: number;
-  totalEarnings: number;
-  viewsToday: number;
-  runsToday: number;
+// ============================================
+// Base Model Types (Platform-provided)
+// ============================================
+
+export type BaseModelCategory = 'IMAGE' | 'AUDIO' | 'TEXT' | 'VIDEO' | 'DOCUMENT';
+export type OutputType = 'IMAGE' | 'AUDIO' | 'TEXT' | 'JSON' | 'VIDEO' | 'FILE';
+
+export interface BaseModel {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  category: BaseModelCategory;
+  inputSchema: InputSchema;
+  outputType: OutputType;
+  outputFormat: string;
+  estimatedSeconds: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface NotebookAnalytics {
-  notebookId: string;
-  notebookTitle: string;
-  views: number;
-  runs: number;
-  earnings: number;
+// JSON Schema for input parameters
+export interface InputSchema {
+  type: 'object';
+  required?: string[];
+  properties: Record<string, InputSchemaProperty>;
 }
 
-// Earnings Types
-export interface EarningsSummary {
-  availableBalance: number;
-  pendingBalance: number;
-  totalEarned: number;
+export interface InputSchemaProperty {
+  type: 'string' | 'integer' | 'number' | 'boolean' | 'array';
+  title?: string;
+  description?: string;
+  default?: unknown;
+  enum?: (string | number)[];
+  minimum?: number;
+  maximum?: number;
+  minLength?: number;
+  maxLength?: number;
 }
 
-export interface EarningsBreakdown {
-  notebookId: string;
-  notebookTitle: string;
-  totalRuns: number;
-  totalEarnings: number;
-}
+// ============================================
+// Tars Model Types (Developer-created)
+// ============================================
 
-export type PayoutStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type TarsModelStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 
-export interface Payout {
+export interface TarsModel {
   id: string;
   developerId: string;
-  amount: number;
-  status: PayoutStatus;
-  stripePayoutId?: string;
-  createdAt: string;
-  completedAt?: string;
-}
-
-// Analytics Trends (time series data)
-export interface TimeSeriesDataPoint {
-  date: string;
-  value: number;
-}
-
-export interface AnalyticsTrends {
-  runs: TimeSeriesDataPoint[];
-  earnings: TimeSeriesDataPoint[];
-  views: TimeSeriesDataPoint[];
-}
-
-export interface TopNotebook {
-  notebookId: string;
   title: string;
-  runs: number;
-  earnings: number;
-  trend: number; // percentage change
+  slug: string;
+  description: string | null;
+  status: TarsModelStatus;
+  configOverrides: ConfigOverrides | null;
+  priceCredits: number;
+  totalRuns: number;
+  baseModel: BaseModelSummary;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string | null;
 }
 
-export interface RecentRun {
+export interface BaseModelSummary {
   id: string;
-  notebookId: string;
-  notebookTitle: string;
-  userId: string;
-  creditsEarned: number;
-  duration: number; // in seconds
-  status: 'completed' | 'failed' | 'running';
-  runAt: string;
+  slug: string;
+  name: string;
+  category: BaseModelCategory;
+  outputType: OutputType;
+}
+
+export interface ConfigOverrides {
+  defaultInputs?: Record<string, unknown>;
+  lockedInputs?: Record<string, unknown>;
+  hiddenFields?: string[];
+  promptPrefix?: string;
+  promptSuffix?: string;
+}
+
+export interface CreateTarsModelInput {
+  baseModelId: string;
+  title: string;
+  slug: string;
+  description?: string;
+  priceCredits?: number;
+  configOverrides?: ConfigOverrides;
+}
+
+export interface UpdateTarsModelInput {
+  title?: string;
+  slug?: string;
+  description?: string;
+  priceCredits?: number;
+  configOverrides?: ConfigOverrides;
+}
+
+export type PublishAction = 'publish' | 'archive';
+
+export interface PublishTarsModelInput {
+  action: PublishAction;
+}
+
+// ============================================
+// Dashboard Stats Types
+// ============================================
+
+export interface DashboardStats {
+  totalModels: number;
+  publishedModels: number;
+  draftModels: number;
+  totalRuns: number;
+  totalEarnings: number;
 }

@@ -4,9 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
-  BookOpen,
-  BarChart3,
-  DollarSign,
+  Boxes,
   Settings,
   X,
 } from 'lucide-react';
@@ -16,8 +14,7 @@ import { useUIStore } from '@/stores/ui-store';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Notebooks', href: '/notebooks', icon: BookOpen },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'My Models', href: '/models', icon: Boxes },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

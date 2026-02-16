@@ -1,146 +1,156 @@
 # Tarsify Studio - Development Guide
 
-> Developer portal for AI notebook creators
+> Developer portal for creating and publishing AI models
 
 ---
 
 ## Quick Reference
 
-| Resource      | Location                         |
-| ------------- | -------------------------------- |
-| API Docs      | [API.MD](./API.MD)               |
-| Archived Docs | [docs/archive/](./docs/archive/) |
-| Mock Data     | `src/lib/mock/index.ts`          |
-| API Client    | `src/lib/api/client.ts`          |
+| Resource        | Location                           |
+| --------------- | ---------------------------------- |
+| API Docs        | [docs/api/API.md](./docs/api/API.md) |
+| Migration Guide | [docs/MIGRATION.md](./docs/MIGRATION.md) |
+| Deployment      | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) |
+| Archived Docs   | [docs/archive/](./docs/archive/)   |
+| API Client      | `src/lib/api/client.ts`            |
 
 ---
 
-## Infrastructure Overview
+## Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                         DOMAINS                             │
-│  tarsify.com → Consumer Web                                 │
+│  tarsify.com → Consumer Marketplace                         │
 │  studio.tarsify.com → Developer Portal (this repo)         │
 │  api.tarsify.com → Backend API                             │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
 │                      AUTHENTICATION                         │
-│  Firebase Project: tarsify-studio (separate from consumer)  │
+│  Firebase Project: tarsify-studio                           │
 │  Token passed to API via: Authorization: Bearer <token>     │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
 │                       BACKEND API                           │
-│  /api/studio/auth/*      → Developer auth & profile         │
-│  /api/studio/notebooks/* → Notebook CRUD & files            │
-│  /api/studio/analytics   → Stats (deferred)                 │
-│  /api/studio/earnings    → Revenue (deferred)               │
+│  /api/studio/auth/*        → Developer auth & profile       │
+│  /api/studio/tars-models/* → Tars Models CRUD (NEW)         │
+│  /api/studio/notebooks/*   → DEPRECATED (do not use)        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Phase Status
+## Concept: Notebooks → Tars Models
 
-### ✅ Phase 1: Foundation (Complete)
+The platform has **migrated from Jupyter notebooks to Tars Models**:
+
+| Before (Deprecated)                     | After (Current)                              |
+| --------------------------------------- | -------------------------------------------- |
+| Developers uploaded `.ipynb` files      | Developers pick platform **base models**     |
+| Routes: `/api/studio/notebooks/*`       | Routes: `/api/studio/tars-models/*`          |
+| Manual notebook configuration           | Select base model + add `configOverrides`    |
+| No real GPU execution                   | Real GPU execution via RunPod Serverless     |
+
+### What is a Base Model?
+Platform-provided AI capability (e.g., SDXL, Whisper, Chatterbox TTS) that developers build on.
+
+### What is a Tars Model?
+Developer's branded/configured version of a base model with custom title, slug, description, and optional `configOverrides`.
+
+---
+
+## Implementation Status
+
+### ✅ Foundation (Complete)
 
 - [x] Next.js 15 + TypeScript + Tailwind CSS 4
 - [x] shadcn/ui components
 - [x] Firebase Auth integration
 - [x] API client with auth headers
 - [x] React Query + Zustand setup
-- [x] Protected routes middleware
+- [x] Protected routes (next.config.ts redirects)
+- [x] CI/CD pipeline (GitHub Actions + Firebase App Hosting)
 
-### ✅ Phase 2: UI Complete (Complete)
+### ✅ Auth API Integration (Complete)
 
-- [x] Auth pages (login, register)
-- [x] Dashboard layout (sidebar, header)
-- [x] Notebooks list, create, edit, view pages
-- [x] File upload component (UI only)
-- [x] Settings page (profile, account, payout)
-- [x] Analytics page (mock data)
-- [x] Earnings page (mock data)
+| Endpoint                         | Status |
+| -------------------------------- | ------ |
+| `POST /api/studio/auth/register` | ✅     |
+| `GET /api/studio/auth/me`        | ✅     |
+| `PUT /api/studio/auth/profile`   | ✅     |
 
-### 🔴 Phase 3: Auth API Integration (Current)
+### ⚠️ Notebooks API (Deprecated - Remove)
 
-Connect real API endpoints for authentication:
+The current UI uses notebook APIs which are **deprecated**. These need to be removed:
 
-| Endpoint                         | Hook                  | Status  |
-| -------------------------------- | --------------------- | ------- |
-| `POST /api/studio/auth/register` | After Firebase signup | 🔴 TODO |
-| `GET /api/studio/auth/me`        | `useDeveloperProfile` | 🟡 Mock |
-| `PUT /api/studio/auth/profile`   | `useUpdateProfile`    | 🟡 Mock |
+- `/notebooks` page → Remove or repurpose for Tars Models
+- `use-notebooks.ts` hook → Replace with Tars Models hooks
+- Notebook components → Delete
 
-**Tasks:**
+### 🔴 Phase 1: Remove Notebook UI (TODO)
 
-- [ ] Call register API after Firebase signup in auth-provider
-- [ ] Switch `useDeveloperProfile` to real API
-- [ ] Switch `useUpdateProfile` to real API
-- [ ] Handle 404 (new user) vs 200 (existing user) on `/me`
+- [ ] Delete notebook-related components
+- [ ] Remove notebook file upload logic
+- [ ] Clean up notebook state/hooks
 
-### 🔴 Phase 4: Notebooks API Integration
+### 🔴 Phase 2: Base Models Browser (TODO)
 
-Connect real API endpoints for notebooks:
+- [ ] Create "Browse Base Models" page
+- [ ] Fetch: `GET /api/studio/tars-models/base-models`
+- [ ] Display cards: name, description, category, outputType
+- [ ] Filter by category (IMAGE, AUDIO, TEXT, VIDEO, DOCUMENT)
+- [ ] "Create Tars Model" button on each card
 
-| Endpoint                                   | Hook                   | Status  |
-| ------------------------------------------ | ---------------------- | ------- |
-| `GET /api/studio/notebooks`                | `useNotebooks`         | 🟡 Mock |
-| `POST /api/studio/notebooks`               | `useCreateNotebook`    | 🟡 Mock |
-| `GET /api/studio/notebooks/:id`            | `useNotebook`          | 🟡 Mock |
-| `PUT /api/studio/notebooks/:id`            | `useUpdateNotebook`    | 🟡 Mock |
-| `DELETE /api/studio/notebooks/:id`         | `useDeleteNotebook`    | 🟡 Mock |
-| `POST /api/studio/notebooks/:id/publish`   | `usePublishNotebook`   | 🟡 Mock |
-| `POST /api/studio/notebooks/:id/unpublish` | `useUnpublishNotebook` | 🟡 Mock |
+### 🔴 Phase 3: Tars Models CRUD (TODO)
 
-### 🔴 Phase 5: File Upload
+- [ ] Create "My Tars Models" dashboard
+- [ ] List: `GET /api/studio/tars-models`
+- [ ] Create: `POST /api/studio/tars-models`
+- [ ] View/Edit: `GET/PUT /api/studio/tars-models/:id`
+- [ ] Delete: `DELETE /api/studio/tars-models/:id` (draft only)
+- [ ] Publish/Archive: `POST /api/studio/tars-models/:id/publish`
 
-Connect file upload endpoints:
+### 🔴 Phase 4: Create Flow (TODO)
 
-| Endpoint                                | Hook                    | Status     |
-| --------------------------------------- | ----------------------- | ---------- |
-| `POST /api/studio/notebooks/:id/file`   | `useUploadNotebookFile` | 🔴 UI only |
-| `DELETE /api/studio/notebooks/:id/file` | `useDeleteNotebookFile` | 🔴 UI only |
+Multi-step wizard:
+1. Select base model
+2. Brand your model (title, slug, description)
+3. Configure (optional `configOverrides`)
+4. Review & create
 
-**Tasks:**
+### ⏸️ Phase 5: Analytics & Earnings (Deferred)
 
-- [ ] Implement actual file upload (multipart/form-data)
-- [ ] Show upload progress
-- [ ] Handle large files (up to 50MB)
-
-### ⏸️ Phase 6: Analytics & Earnings (Deferred)
-
-_Postponed to post-MVP - UI exists with mock data_
-
-- Analytics overview and charts
-- Earnings summary and breakdown
-- Payout request flow
-- Stripe Connect integration
-
-### ⏸️ Phase 7: Deploy & Polish (Deferred)
-
-- Cloud Run deployment
-- Error boundaries
-- Loading state improvements
-- E2E tests
+- Analytics page currently shows "Coming Soon"
+- Earnings removed from navigation
+- Will implement post-MVP
 
 ---
 
-## Mock Data Configuration
+## API Endpoints Reference
 
-All hooks check `USE_MOCK_DATA` flag:
+### Auth (Working)
 
-```typescript
-// src/lib/mock/index.ts
-export const USE_MOCK_DATA = true; // Set to false when API is ready
+```
+POST /api/studio/auth/register  → Register developer
+GET  /api/studio/auth/me        → Get profile
+PUT  /api/studio/auth/profile   → Update profile
 ```
 
-**To switch to real API:**
+### Tars Models (To Implement)
 
-1. Set `USE_MOCK_DATA = false`
-2. Ensure `NEXT_PUBLIC_API_URL` is set in `.env.local`
-3. Test each endpoint individually
+```
+GET  /api/studio/tars-models/base-models  → List base models
+GET  /api/studio/tars-models              → List my models
+POST /api/studio/tars-models              → Create model
+GET  /api/studio/tars-models/:id          → Get model
+PUT  /api/studio/tars-models/:id          → Update model
+DELETE /api/studio/tars-models/:id        → Delete (draft only)
+POST /api/studio/tars-models/:id/publish  → Publish/archive
+```
+
+See [docs/api/API.md](./docs/api/API.md) for full request/response formats.
 
 ---
 
@@ -148,7 +158,7 @@ export const USE_MOCK_DATA = true; // Set to false when API is ready
 
 ```bash
 # .env.local
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://127.0.0.2:8080
 
 # Firebase (tarsify-studio project)
 NEXT_PUBLIC_FIREBASE_API_KEY=xxx
@@ -161,44 +171,38 @@ NEXT_PUBLIC_FIREBASE_APP_ID=xxx
 
 ---
 
-## Key Files
-
-| File                              | Purpose                        |
-| --------------------------------- | ------------------------------ |
-| `src/lib/api/client.ts`           | API client with auth           |
-| `src/lib/api/endpoints.ts`        | Endpoint definitions           |
-| `src/lib/mock/index.ts`           | Mock data & USE_MOCK_DATA flag |
-| `src/hooks/use-*.ts`              | Data fetching hooks            |
-| `src/providers/auth-provider.tsx` | Firebase auth listener         |
-
----
-
 ## Commands
 
 ```bash
-npm run dev      # Start dev server
-npm run build    # Production build
-npm run lint     # Run ESLint
-npm run test     # Run unit tests
+npm run dev        # Start dev server
+npm run build      # Production build
+npm run lint       # Run ESLint
+npm run test       # Run unit tests
+npm run typecheck  # TypeScript check
 ```
 
 ---
 
-## Current Limitations
+## Deployment
 
-1. **No real file upload** - FileUpload component is UI only
-2. **No persistence** - Mock data resets on refresh
-3. **Analytics/Earnings** - Fully mocked, deferred to post-MVP
+Push to `main` branch triggers:
+1. **GitHub Actions** - Lint, test, security scan, build check
+2. **Firebase App Hosting** - Build and deploy to Cloud Run
 
----
-
-## Next Steps
-
-1. **Verify backend API is running** at `localhost:3001`
-2. **Start with Phase 3** - Auth API integration
-3. **Test register flow** - Firebase signup + API register call
-4. **Proceed to Phase 4** - Notebooks API
+Live URL: https://tarsify-studio-backend--tarsify-studio.us-central1.hosted.app
 
 ---
 
-_Last Updated: January 27, 2026_
+## Key Files
+
+| File                              | Purpose                      |
+| --------------------------------- | ---------------------------- |
+| `src/lib/api/client.ts`           | API client with auth headers |
+| `src/lib/api/endpoints.ts`        | Endpoint definitions         |
+| `src/hooks/use-*.ts`              | React Query data hooks       |
+| `src/providers/auth-provider.tsx` | Firebase auth logic          |
+| `src/types/api.ts`                | TypeScript API types         |
+
+---
+
+_Last Updated: February 16, 2026_

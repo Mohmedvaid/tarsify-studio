@@ -16,29 +16,14 @@ export const endpoints = {
     completeProfile: '/api/studio/auth/complete-profile',
   },
 
-  // Notebooks
-  notebooks: {
-    list: '/api/studio/notebooks',
-    create: '/api/studio/notebooks',
-    get: (id: string) => `/api/studio/notebooks/${id}`,
-    delete: (id: string) => `/api/studio/notebooks/${id}`,
-    file: (id: string) => `/api/studio/notebooks/${id}/file`,
-    publish: (id: string) => `/api/studio/notebooks/${id}/publish`,
-    unpublish: (id: string) => `/api/studio/notebooks/${id}/unpublish`,
-  },
-
-  // Analytics (Future)
-  analytics: {
-    overview: '/api/studio/analytics',
-    notebook: (id: string) => `/api/studio/analytics/notebooks/${id}`,
-  },
-
-  // Earnings (Future)
-  earnings: {
-    summary: '/api/studio/earnings',
-    payouts: {
-      list: '/api/studio/payouts',
-      request: '/api/studio/payouts/request',
-    },
+  // Tars Models
+  tarsModels: {
+    baseModels: '/api/studio/tars-models/base-models',
+    list: '/api/studio/tars-models',
+    create: '/api/studio/tars-models',
+    get: (id: string) => `/api/studio/tars-models/${id}`,
+    update: (id: string) => `/api/studio/tars-models/${id}`,
+    delete: (id: string) => `/api/studio/tars-models/${id}`,
+    publish: (id: string) => `/api/studio/tars-models/${id}/publish`,
   },
 } as const;

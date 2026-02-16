@@ -1,42 +1,80 @@
 'use client';
 
 import Link from 'next/link';
-import { BookOpen, BarChart3, DollarSign, Play, Plus, ArrowRight } from 'lucide-react';
+import { Boxes, Play, Plus, ArrowRight, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PageHeader } from '@/components/shared';
-import { StatsCard, StatsCardSkeleton } from '@/components/analytics';
-import { useAuth } from '@/hooks/use-auth';
-import { useNotebooks } from '@/hooks/use-notebooks';
-import { formatCurrency, formatRelativeTime } from '@/lib/utils/format';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { NOTEBOOK_STATUS_CONFIG } from '@/lib/constants';
-import type { Notebook, NotebookStatus } from '@/types/api';
+import { PageHeader } from '@/components/shared';
+import { TarsModelStatusBadge } from '@/components/tars-models';
+import { useAuth } from '@/hooks/use-auth';
+import { useTarsModels } from '@/hooks';
+import { formatRelativeTime } from '@/lib/utils/format';
+import type { TarsModel } from '@/types/api';
+
+// Simple stats card component
+function StatsCard({
+  title,
+  value,
+  description,
+  icon: Icon,
+}: {
+  title: string;
+  value: string | number;
+  description: string;
+  icon: LucideIcon;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StatsCardSkeleton() {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-4" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-8 w-16 mb-1" />
+        <Skeleton className="h-3 w-20" />
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function DashboardPage() {
   const { developer } = useAuth();
-  const { data: notebooksData, isLoading: notebooksLoading } = useNotebooks({ limit: 5 });
+  const { data: models, isLoading: modelsLoading } = useTarsModels();
 
-  const notebooks = notebooksData?.data || [];
-  const totalNotebooks = notebooksData?.pagination?.total || 0;
-
-  // Calculate stats from notebooks data
-  const publishedCount = notebooks.filter((n) => n.status === 'published').length;
-  const totalRuns = notebooks.reduce((acc, n) => acc + n.totalRuns, 0);
-  const totalEarnings = developer?.totalEarnings || 0;
+  // Type-safe models array
+  const modelsArray = (models as TarsModel[] | undefined) || [];
+  const totalModels = modelsArray.length;
+  const publishedCount = modelsArray.filter((m) => m.status === 'PUBLISHED').length;
+  const totalRuns = modelsArray.reduce((acc, m) => acc + (m.totalRuns ?? 0), 0);
+  const draftCount = modelsArray.filter((m) => m.status === 'DRAFT').length;
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <PageHeader
         title={`Welcome back, ${developer?.displayName?.split(' ')[0] || 'Developer'}!`}
-        description="Here's what's happening with your notebooks."
+        description="Here's an overview of your Tars Models."
       />
 
       {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {notebooksLoading ? (
+        {modelsLoading ? (
           <>
             <StatsCardSkeleton />
             <StatsCardSkeleton />
@@ -46,34 +84,34 @@ export default function DashboardPage() {
         ) : (
           <>
             <StatsCard
-              title="Total Notebooks"
-              value={totalNotebooks}
+              title="Total Models"
+              value={totalModels}
               description={`${publishedCount} published`}
-              icon={BookOpen}
+              icon={Boxes}
             />
             <StatsCard
               title="Total Runs"
               value={totalRuns.toLocaleString()}
-              description="All time"
+              description="All time usage"
               icon={Play}
             />
             <StatsCard
-              title="Views Today"
-              value="—"
-              description="Coming soon"
-              icon={BarChart3}
+              title="Published"
+              value={publishedCount}
+              description="Live in marketplace"
+              icon={Boxes}
             />
             <StatsCard
-              title="Total Earnings"
-              value={formatCurrency(totalEarnings)}
-              description="Lifetime earnings"
-              icon={DollarSign}
+              title="Drafts"
+              value={draftCount}
+              description="Ready to publish"
+              icon={Boxes}
             />
           </>
         )}
       </div>
 
-      {/* Quick Actions & Recent Notebooks */}
+      {/* Quick Actions & Recent Models */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Quick Actions */}
         <Card>
@@ -83,48 +121,36 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="grid gap-3">
             <Button asChild className="justify-start">
-              <Link href="/notebooks/new">
+              <Link href="/models/new">
                 <Plus className="mr-2 h-4 w-4" />
-                Create New Notebook
+                Create New Model
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-start">
-              <Link href="/notebooks">
-                <BookOpen className="mr-2 h-4 w-4" />
-                Manage Notebooks
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-start">
-              <Link href="/analytics">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                View Analytics
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="justify-start">
-              <Link href="/earnings">
-                <DollarSign className="mr-2 h-4 w-4" />
-                View Earnings
+              <Link href="/models">
+                <Boxes className="mr-2 h-4 w-4" />
+                Manage Models
               </Link>
             </Button>
           </CardContent>
         </Card>
 
-        {/* Recent Notebooks */}
+        {/* Recent Models */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Recent Notebooks</CardTitle>
-              <CardDescription>Your latest notebook activity</CardDescription>
+              <CardTitle>Recent Models</CardTitle>
+              <CardDescription>Your latest model activity</CardDescription>
             </div>
             <Button asChild variant="ghost" size="sm">
-              <Link href="/notebooks">
+              <Link href="/models">
                 View all
                 <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </CardHeader>
           <CardContent>
-            {notebooksLoading ? (
+            {modelsLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="flex items-center justify-between">
@@ -136,24 +162,24 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-            ) : notebooks.length === 0 ? (
+            ) : modelsArray.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <BookOpen className="mb-3 h-10 w-10 text-muted-foreground" />
-                <p className="text-sm font-medium">No notebooks yet</p>
+                <Boxes className="mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-sm font-medium">No models yet</p>
                 <p className="text-xs text-muted-foreground">
-                  Create your first notebook to get started
+                  Create your first Tars Model to get started
                 </p>
                 <Button asChild size="sm" className="mt-4">
-                  <Link href="/notebooks/new">
+                  <Link href="/models/new">
                     <Plus className="mr-2 h-4 w-4" />
-                    Create Notebook
+                    Create Model
                   </Link>
                 </Button>
               </div>
             ) : (
               <div className="space-y-4">
-                {notebooks.slice(0, 5).map((notebook) => (
-                  <NotebookListItem key={notebook.id} notebook={notebook} />
+                {modelsArray.slice(0, 5).map((model) => (
+                  <ModelListItem key={model.id} model={model} />
                 ))}
               </div>
             )}
@@ -164,21 +190,19 @@ export default function DashboardPage() {
   );
 }
 
-function NotebookListItem({ notebook }: { notebook: Notebook }) {
-  const statusConfig = NOTEBOOK_STATUS_CONFIG[notebook.status as NotebookStatus];
-
+function ModelListItem({ model }: { model: TarsModel }) {
   return (
     <Link
-      href={`/notebooks/${notebook.id}`}
+      href={`/models/${model.id}`}
       className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-slate-50"
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{notebook.title}</p>
+        <p className="truncate text-sm font-medium">{model.title}</p>
         <p className="text-xs text-muted-foreground">
-          Updated {formatRelativeTime(notebook.updatedAt)}
+          Updated {formatRelativeTime(model.updatedAt)}
         </p>
       </div>
-      <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+      <TarsModelStatusBadge status={model.status} />
     </Link>
   );
 }
