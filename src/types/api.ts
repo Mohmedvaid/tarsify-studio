@@ -136,6 +136,7 @@ export interface BaseModelSummary {
   name: string;
   category: BaseModelCategory;
   outputType: OutputType;
+  inputSchema?: InputSchema;
 }
 
 export interface ConfigOverrides {
@@ -179,4 +180,22 @@ export interface DashboardStats {
   draftModels: number;
   totalRuns: number;
   totalEarnings: number;
+}
+
+// ============================================
+// Test Run Types
+// ============================================
+
+export type TestRunStatus = 'COMPLETED' | 'FAILED' | 'IN_PROGRESS' | 'IN_QUEUE';
+
+export interface TestRunResult {
+  jobId: string;
+  status: TestRunStatus;
+  output: Record<string, unknown> | null;
+  error: string | null;
+  executionTimeMs: number;
+}
+
+export interface TestRunInput {
+  inputs: Record<string, unknown>;
 }

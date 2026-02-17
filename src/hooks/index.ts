@@ -8,5 +8,6 @@ export {
   useUpdateTarsModel,
   useDeleteTarsModel,
   usePublishTarsModel,
+  useTestRunModel,
   tarsModelKeys,
 } from './use-tars-models';

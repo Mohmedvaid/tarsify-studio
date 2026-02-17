@@ -25,5 +25,6 @@ export const endpoints = {
     update: (id: string) => `/api/studio/tars-models/${id}`,
     delete: (id: string) => `/api/studio/tars-models/${id}`,
     publish: (id: string) => `/api/studio/tars-models/${id}/publish`,
+    testRun: (id: string) => `/api/studio/tars-models/${id}/test-run`,
   },
 } as const;

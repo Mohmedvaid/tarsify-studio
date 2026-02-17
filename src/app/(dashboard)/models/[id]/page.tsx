@@ -3,7 +3,7 @@
 import { use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Edit, Trash2, Globe, Settings } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Globe, Settings, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/shared';
@@ -88,6 +88,15 @@ export default function ModelDetailPage({ params }: ModelDetailPageProps) {
             Edit
           </Link>
         </Button>
+
+        {model.status !== 'ARCHIVED' && (
+          <Button asChild variant="secondary">
+            <Link href={`/models/${id}/test`}>
+              <Play className="mr-2 h-4 w-4" />
+              Test Run
+            </Link>
+          </Button>
+        )}
 
         {model.status === 'DRAFT' && (
           <Button onClick={() => setShowPublishDialog(true)}>

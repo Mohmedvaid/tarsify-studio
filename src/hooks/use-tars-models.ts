@@ -11,6 +11,8 @@ import type {
   UpdateTarsModelInput,
   PublishTarsModelInput,
   PaginatedResponse,
+  TestRunResult,
+  TestRunInput,
 } from '@/types/api';
 
 // Query keys
@@ -159,6 +161,21 @@ export function usePublishTarsModel() {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: tarsModelKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: tarsModelKeys.lists() });
+    },
+  });
+}
+
+// ============================================
+// Test Run Tars Model
+// ============================================
+
+export function useTestRunModel() {
+  return useMutation({
+    mutationFn: async ({ id, inputs }: { id: string; inputs: TestRunInput['inputs'] }) => {
+      const response = await api.post<TestRunResult>(endpoints.tarsModels.testRun(id), {
+        inputs,
+      });
+      return response;
     },
   });
 }

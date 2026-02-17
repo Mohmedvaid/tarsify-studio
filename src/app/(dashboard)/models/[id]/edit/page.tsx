@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -181,6 +181,12 @@ export default function EditModelPage({ params }: EditModelPageProps) {
         <div className="flex justify-end gap-3 pt-4 border-t">
           <Button type="button" variant="outline" asChild>
             <Link href={`/models/${id}`}>Cancel</Link>
+          </Button>
+          <Button type="button" variant="secondary" asChild>
+            <Link href={`/models/${id}/test`}>
+              <Play className="mr-2 h-4 w-4" />
+              Preview
+            </Link>
           </Button>
           <Button type="submit" disabled={updateModel.isPending}>
             {updateModel.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
